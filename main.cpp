@@ -2,6 +2,9 @@
 #include <fstream>
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
+bool hit_shpere(const vec3&center,float radius,const&ray r){
+  return false;
+}
 vec3 color(const ray& r){
   vec3 dir_norm=unit_vector(r.direction());
   float t=0.5f*dir_norm.y()+0.5f;
@@ -14,15 +17,17 @@ int main() {
     
   std::cout<<"Beginng"<< std::endl;
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
+  float aspectRatio=2;
   vec3 v1(1,2,3);
-  int nx=200;
-  int ny=100;
+   int ny=100;
+  int nx=ny*aspectRatio;
+ 
   output<<"P3"<< std::endl;
   output<<nx<<" "<<ny<< std::endl;
   output<<255<< std::endl;
   vec3 origin(0.0,0.0,0.0);
-  vec3 top_left(-2.0,1.0,-1.0);
-  vec3 hori(4.0,0.0,0.0);
+  vec3 top_left(-1.0*aspectRatio,1.0,-1.0);
+  vec3 hori(2.0*aspectRatio,0.0,0.0);
   vec3 vert(0.0,-2.0,0.0);
   for(int j=0;j<ny;j++){
         for(int i=0;i<nx;i++){
