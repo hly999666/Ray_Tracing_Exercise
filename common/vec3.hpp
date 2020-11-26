@@ -3,8 +3,8 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
-#ifndef VEC3H
- #define VEC3H
+#ifndef VEC3_H
+ #define VEC3_H
 #endif
 using std::sqrt;
 using std::fabs;

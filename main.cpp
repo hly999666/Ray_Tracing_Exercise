@@ -2,6 +2,7 @@
 #include <fstream>
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
+#include "common/sphere.hpp"
 float hit_shpere(const vec3&center,float radius,const ray&r ){
   vec3 oc=r.origin()-center;
   float a=dot(r.direction(),r.direction());
@@ -35,7 +36,7 @@ int main() {
   vec3 v1(1,2,3);
    int ny=100;
   int nx=ny*aspectRatio;
- 
+ sphere s1;
   output<<"P3"<< std::endl;
   output<<nx<<" "<<ny<< std::endl;
   output<<255<< std::endl;

@@ -1,8 +1,8 @@
-#ifndef VEC3H
+#ifndef VEC3_H
  #include "vec3.hpp"
 #endif
-#ifndef RAYH
- #define RAYH
+#ifndef RAY_H
+ #define RAY_H
 #endif
 class ray{
     public:
