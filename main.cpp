@@ -1,42 +1,41 @@
 #include <iostream>
+#include <cfloat>
 #include <fstream>
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
 #include "common/sphere.hpp"
-float hit_shpere(const vec3&center,float radius,const ray&r ){
-  vec3 oc=r.origin()-center;
-  float a=dot(r.direction(),r.direction());
-  float b=2.0f*dot(oc,r.direction());
-  float c=dot(oc,oc)-radius*radius;
-  float d=b*b-4*a*c;
-  if(d<0){
-    return -1.0f;
-  }else{
-    return (-b-sqrt(d))/(2.0*a);
-  }
-}
-vec3 color(const ray& r){
-   vec3 center(0,0,-1);
-  float t =hit_shpere(center,0.5,r);
-  if(t>0.0){
-    vec3 n=unit_vector(r.point_at_parameter(t)-center);
+#include "common/hitable_list.hpp"
+ 
+vec3 color(const ray& r,hitable* scene){
+   hit_record rc;
+  if(scene->hit(r,0.0,100000.0,rc)){
   
+  vec3 n=rc.normal;
     // map to 0-1
     return 0.5*(n+vec3(1.0,1.0,1.0));
   }
+
   vec3 dir_norm=unit_vector(r.direction());
-    t=0.5f*dir_norm.y()+0.5f;
+  float  t=0.5f*dir_norm.y()+0.5f;
  
   return t*vec3(0.5f,0.7f,1.0f)+(1.0f-t)*vec3(1.0f,1.0f,1.0f);
 }
 int main() {
   std::cout<<"Beginng"<< std::endl;
+
+  //set up scene
+  hitable* list[2];
+  //main ball
+  list[0]=new sphere(vec3(0,0,-1),0.5);
+ // extreme large ball, like a ground
+ list[1]=new sphere(vec3(0,-100.9,-1),100);
+hitable* scene=new hitable_list(list,2);
+
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
   float aspectRatio=2;
-  vec3 v1(1,2,3);
    int ny=100;
   int nx=ny*aspectRatio;
- sphere s1;
+
   output<<"P3"<< std::endl;
   output<<nx<<" "<<ny<< std::endl;
   output<<255<< std::endl;
@@ -50,7 +49,7 @@ int main() {
           float v=float(j)/float(ny);
           vec3 dir=top_left+u*hori+v*vert;
           ray r(origin,dir);
-          vec3 _color=color(r);
+          vec3 _color=color(r,scene);
           _color*=255.99f;
          output<<int(_color.r())<<" "<<int(_color.g())<<" "<<int(_color.b())<<" ";
   }
