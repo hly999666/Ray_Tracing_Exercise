@@ -2,25 +2,33 @@
 #include <fstream>
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
-bool hit_shpere(const vec3&center,float radius,const ray&r ){
+float hit_shpere(const vec3&center,float radius,const ray&r ){
   vec3 oc=r.origin()-center;
   float a=dot(r.direction(),r.direction());
   float b=2.0f*dot(oc,r.direction());
   float c=dot(oc,oc)-radius*radius;
   float d=b*b-4*a*c;
-  return d>0;
+  if(d<0){
+    return -1.0f;
+  }else{
+    return (-b-sqrt(d))/(2.0*a);
+  }
 }
 vec3 color(const ray& r){
-  if(hit_shpere(vec3(0,0,-1),0.5,r))return vec3(1,0,0);
-  vec3 dir_norm=unit_vector(r.direction());
-  float t=0.5f*dir_norm.y()+0.5f;
-  if(t<0.1f){
-    int a=666;
+   vec3 center(0,0,-1);
+  float t =hit_shpere(center,0.5,r);
+  if(t>0.0){
+    vec3 n=unit_vector(r.point_at_parameter(t)-center);
+  
+    // map to 0-1
+    return 0.5*(n+vec3(1.0,1.0,1.0));
   }
+  vec3 dir_norm=unit_vector(r.direction());
+    t=0.5f*dir_norm.y()+0.5f;
+ 
   return t*vec3(0.5f,0.7f,1.0f)+(1.0f-t)*vec3(1.0f,1.0f,1.0f);
 }
 int main() {
-    
   std::cout<<"Beginng"<< std::endl;
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
   float aspectRatio=2;
