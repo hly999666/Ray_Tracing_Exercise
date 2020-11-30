@@ -9,16 +9,29 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
  
- 
+ std::mt19937_64* _mt_r;
+ std::uniform_real_distribution<double>* _dist;
+ vec3 random_in_unit_sphere(){
+   auto& mt_r=*_mt_r;
+   auto& dist= *_dist;
+    vec3 ans(dist(mt_r),dist(mt_r),dist(mt_r));
+     ans=ans*2.0-vec3(1.0,1.0,1.0);
+     while(dot(ans,ans)>=1.0){
+
+       ans=vec3(dist(mt_r),dist(mt_r),dist(mt_r));
+        ans=ans*2.0-vec3(1.0,1.0,1.0);
+     }
+     return ans;
+ }
 vec3 color(const ray& r,hitable* scene){
    hit_record rc;
   if(scene->hit(r,0.0,100000.0,rc)){
   
-  vec3 n=rc.normal;
-    // map to 0-1
-    return 0.5*(n+vec3(1.0,1.0,1.0));
+  vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
+    // 0.5 is absorb factor, lower this number,surface absorb more energy
+    return 0.5*color(ray(rc.p,tar-rc.p),scene);
   }
-
+ // hit nothing ,get sky color
   vec3 dir_norm=unit_vector(r.direction());
   float  t=0.5f*dir_norm.y()+0.5f;
  
@@ -29,14 +42,14 @@ int main() {
 //set up random 
 
 auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
- std::mt19937_64 mt_r(seed);
-std::uniform_real_distribution<double> dist(0.0, 1.0);
+ std::mt19937_64 mt_r(seed);_mt_r=&mt_r;
+std::uniform_real_distribution<double> dist(0.0, 1.0);_dist=&dist;
   //set up scene
   hitable* list[2];
   //main ball
   list[0]=new sphere(vec3(0,0,-1),0.5);
  // extreme large ball, like a ground
- list[1]=new sphere(vec3(0,-100.9,-1),100);
+ list[1]=new sphere(vec3(0,-100.5,-1),100);
 hitable* scene=new hitable_list(list,2);
 
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
@@ -77,6 +90,8 @@ hitable* scene=new hitable_list(list,2);
          auto r=cmr.get_ray(u,v);
    
             _color+=color(r,scene); */
+            //color correction
+           _color=vec3(sqrt( _color.r()),sqrt( _color.g()),sqrt( _color.b()));
           _color*=255.99f;
          output<<int(_color.r())<<" "<<int(_color.g())<<" "<<int(_color.b())<<" ";
   }
