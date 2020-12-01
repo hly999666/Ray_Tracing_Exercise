@@ -22,8 +22,12 @@ class vec3 {
  
     public:
         float e[3];
-        vec3() : e{0,0,0} {};
-        vec3(float e0, float e1, float e2) : e{e0, e1, e2} {};
+        bool isUnit;
+        vec3() : e{0,0,0},isUnit(false) {};
+        vec3(float e0, float e1, float e2) : e{e0, e1, e2},isUnit(false)  {};
+        vec3(const vec3&v2){
+          e[0]=v2.e[0];e[1]=v2.e[1];e[2]=v2.e[2];
+      }
          inline float x() const{return e[0];}
          inline float y() const{return e[1];}
          inline float z() const{return e[2];}
@@ -66,7 +70,9 @@ class vec3 {
               return   e[0]* e[0]+e[1]* e[1]+e[2]* e[2];
           }
           inline void make_unit_vector() {
+             if(isUnit)return;
              (*this)/=squared_length() ;
+                isUnit=true;
           }
           
 };
@@ -135,3 +141,7 @@ inline vec3 operator/ (const float& t,const vec3&v1){
       return v1/t;
 };
 
+inline vec3 reflect(const vec3& v,const vec3& n){
+     vec3 nn{n};nn.make_unit_vector();
+     return v+2*dot(-1.0*v,nn)*nn;
+}

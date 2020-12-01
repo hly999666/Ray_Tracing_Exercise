@@ -5,24 +5,27 @@
 #include <random>
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
+#include "common/random_tool.hpp"
+#include "common/material.hpp"
 #include "common/sphere.hpp"
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
-#include "common/random_tool.hpp"
-#include "common/material.hpp"
+
 
  random_tool *  _rt_now;
  std::mt19937_64* _mt_r;
  std::uniform_real_distribution<double>* _dist;
 
-vec3 color(const ray& r,hitable* scene){
+vec3 color(const ray& r,hitable* scene,int depth){
   auto& rt_now=*_rt_now;
    hit_record rc;
   if(scene->hit(r,0.0,100000.0,rc)){
-  
-  vec3 tar=rc.p+rc.normal+rt_now.random_in_unit_sphere();
-    // 0.5 is absorb factor, lower this number,surface absorb more energy
-    return 0.5*color(ray(rc.p,tar-rc.p),scene);
+       ray o_r;
+       vec3 atten;
+       //using depth to prone branch
+       if(depth<50&&rc.mat_ptr->scatter(r,rc,atten,o_r)){
+                return atten*color(o_r,scene,depth+1);
+       }return vec3(0,0,0);
   }
  // hit nothing ,get sky color
   vec3 dir_norm=unit_vector(r.direction());
@@ -37,14 +40,17 @@ int main() {
  
 
 random_tool rt_now;_rt_now=&rt_now;
-
+ 
   //set up scene
-  hitable* list[2];
+  hitable* list[4];
   //main ball
-  list[0]=new sphere(vec3(0,0,-1),0.5);
+  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.8,0.3,0.3),rt_now));
+  
  // extreme large ball, like a ground
- list[1]=new sphere(vec3(0,-100.5,-1),100);
-hitable* scene=new hitable_list(list,2);
+ list[1]=new sphere(vec3(0,-100.5,-1),100,new lambertian(vec3(0.8,0.8,0.0),rt_now));
+  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2),1.0,rt_now));
+   list[3]=new sphere(vec3(-1,0,-1),0.5,new metal(vec3(0.8,0.8,0.8),0.3,rt_now));
+hitable* scene=new hitable_list(list,4);
 
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
   float aspectRatio=2;
@@ -61,21 +67,21 @@ hitable* scene=new hitable_list(list,2);
    vec3(0.0,-2.0,0.0) );
   vec3 origin(0.0,0.0,0.0);
  
-  int simple_num=32;
+  int sample_num=256;
   for(int j=0;j<ny;j++){
         for(int i=0;i<nx;i++){
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
-  for(int s=0;s<simple_num;s++){
+  for(int s=0;s<sample_num;s++){
                float dx=rt_now.rand();  float dy=rt_now.rand();
           float u=(float(i)+dx)/float(nx);
           float v=(float(j)+dy)/float(ny);
           
          auto r=cmr.get_ray(u,v);
-        auto color_hit=color(r,scene);
+        auto color_hit=color(r,scene,0);
             _color+=color_hit;
     }
-      _color/=float(simple_num);  
+      _color/=float(sample_num);  
 
       
   /*               float u=(float(i)+dist(mt_r))/float(nx);

@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 project(RT_I VERSION 1.0.0)
+
+set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -O3")
+set(CMAKE_CXX_FLAGS_Release "${CMAKE_CXX_FLAGS_Release} -O3")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
 add_executable(RT_I main.cpp)
  
