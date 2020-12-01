@@ -8,7 +8,7 @@
             "name": "g++.exe - debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${fileDirname}\\build\\RT_I.exe",
+            "program": "${workspaceFolder}\\build\\RT_I.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
+
 #ifndef VEC3_H
  #define VEC3_H
 #endif
@@ -133,3 +134,4 @@ inline vec3 operator* (const float& t,const vec3&v1){
 inline vec3 operator/ (const float& t,const vec3&v1){
       return v1/t;
 };
+

@@ -8,26 +8,19 @@
 #include "common/sphere.hpp"
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
- 
+#include "common/random_tool.hpp"
+#include "common/material.hpp"
+
+ random_tool *  _rt_now;
  std::mt19937_64* _mt_r;
  std::uniform_real_distribution<double>* _dist;
- vec3 random_in_unit_sphere(){
-   auto& mt_r=*_mt_r;
-   auto& dist= *_dist;
-    vec3 ans(dist(mt_r),dist(mt_r),dist(mt_r));
-     ans=ans*2.0-vec3(1.0,1.0,1.0);
-     while(dot(ans,ans)>=1.0){
 
-       ans=vec3(dist(mt_r),dist(mt_r),dist(mt_r));
-        ans=ans*2.0-vec3(1.0,1.0,1.0);
-     }
-     return ans;
- }
 vec3 color(const ray& r,hitable* scene){
+  auto& rt_now=*_rt_now;
    hit_record rc;
   if(scene->hit(r,0.0,100000.0,rc)){
   
-  vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
+  vec3 tar=rc.p+rc.normal+rt_now.random_in_unit_sphere();
     // 0.5 is absorb factor, lower this number,surface absorb more energy
     return 0.5*color(ray(rc.p,tar-rc.p),scene);
   }
@@ -41,9 +34,10 @@ int main() {
   std::cout<<"Beginng"<< std::endl;
 //set up random 
 
-auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
- std::mt19937_64 mt_r(seed);_mt_r=&mt_r;
-std::uniform_real_distribution<double> dist(0.0, 1.0);_dist=&dist;
+ 
+
+random_tool rt_now;_rt_now=&rt_now;
+
   //set up scene
   hitable* list[2];
   //main ball
@@ -73,7 +67,7 @@ hitable* scene=new hitable_list(list,2);
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
   for(int s=0;s<simple_num;s++){
-               float dx=dist(mt_r);  float dy=dist(mt_r);
+               float dx=rt_now.rand();  float dy=rt_now.rand();
           float u=(float(i)+dx)/float(nx);
           float v=(float(j)+dy)/float(ny);
           
