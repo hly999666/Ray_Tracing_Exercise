@@ -12,9 +12,7 @@
 #include "common/camera.hpp"
 
 
- random_tool *  _rt_now;
- std::mt19937_64* _mt_r;
- std::uniform_real_distribution<double>* _dist;
+ random_tool *  _rt_now; 
 
 vec3 color(const ray& r,hitable* scene,int depth){
   auto& rt_now=*_rt_now;
@@ -42,15 +40,14 @@ int main() {
 random_tool rt_now;_rt_now=&rt_now;
  
   //set up scene
-  hitable* list[4];
+  hitable* list[5];
   //main ball
-  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.8,0.3,0.3),rt_now));
-  
- // extreme large ball, like a ground
+  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5),rt_now));
  list[1]=new sphere(vec3(0,-100.5,-1),100,new lambertian(vec3(0.8,0.8,0.0),rt_now));
-  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2),1.0,rt_now));
-   list[3]=new sphere(vec3(-1,0,-1),0.5,new metal(vec3(0.8,0.8,0.8),0.3,rt_now));
-hitable* scene=new hitable_list(list,4);
+  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2),0.0,rt_now));
+   list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5,rt_now));
+  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5,rt_now));
+hitable* scene=new hitable_list(list,5);
 
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
   float aspectRatio=2;
@@ -67,7 +64,7 @@ hitable* scene=new hitable_list(list,4);
    vec3(0.0,-2.0,0.0) );
   vec3 origin(0.0,0.0,0.0);
  
-  int sample_num=256;
+  int sample_num=1024;
   for(int j=0;j<ny;j++){
         for(int i=0;i<nx;i++){
            vec3 _color(0.0,0.0,0.0);

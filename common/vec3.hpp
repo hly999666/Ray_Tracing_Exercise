@@ -145,3 +145,21 @@ inline vec3 reflect(const vec3& v,const vec3& n){
      vec3 nn{n};nn.make_unit_vector();
      return v+2*dot(-1.0*v,nn)*nn;
 }
+
+bool refract(const vec3& v,const vec3&n,float n_r,vec3& refracted){
+         //default v is pointing into surface
+        vec3 uv=unit_vector(v)*-1.0;
+         float dt=dot(uv,n);
+         float D=1.0-n_r*n_r*(1.0-dt*dt);
+      if(D>0.0){
+           refracted=n_r*(n*dt-uv)-n*sqrt(D);
+            return true;
+      }else return false;
+}
+
+float schlick(float cos,float rf){
+
+    float R0=(1.0-rf)/(1.0+rf);
+    R0=R0*R0;
+    return R0+(1.0-R0)*pow(1.0-cos,5.0);
+}
