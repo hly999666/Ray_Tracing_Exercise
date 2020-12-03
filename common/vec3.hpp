@@ -143,7 +143,7 @@ inline vec3 operator/ (const float& t,const vec3&v1){
 
 inline vec3 reflect(const vec3& v,const vec3& n){
      vec3 nn{n};nn.make_unit_vector();
-     return v+2*dot(-1.0*v,nn)*nn;
+     return v-2.0*dot(v,nn)*nn;
 }
 
 bool refract(const vec3& v,const vec3&n,float n_r,vec3& refracted){
@@ -157,9 +157,3 @@ bool refract(const vec3& v,const vec3&n,float n_r,vec3& refracted){
       }else return false;
 }
 
-float schlick(float cos,float rf){
-
-    float R0=(1.0-rf)/(1.0+rf);
-    R0=R0*R0;
-    return R0+(1.0-R0)*pow(1.0-cos,5.0);
-}

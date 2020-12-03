@@ -1,5 +1,6 @@
 #include<random>
 #include<chrono>
+#include <cstdlib>
 #ifndef RANDOM_TOOL_H
 #define RANDOM_TOOL_H
 #endif
@@ -7,6 +8,19 @@
   #include "vec3.hpp"
 #endif
 
+inline double random_double() {
+ 
+    return rand() / (RAND_MAX + 1.0);
+}
+
+inline double random_double(double min, double max) {
+    
+    return min + (max-min)*random_double();
+}
+
+inline int random_int(int min, int max) {
+    return static_cast<int>(random_double(min, max+1));
+}
 
 const unsigned long long  _seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 class random_tool{

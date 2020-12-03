@@ -3,6 +3,9 @@
 #include<chrono>
 #include <fstream>
 #include <random>
+#include <vector>
+#include<thread> 
+#include<atomic>  
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
 #include "common/random_tool.hpp"
@@ -11,9 +14,18 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 
+const int sample_num=128;
+ const  int ny=100;
+ const float aspectRatio=2;
+ const  int nx=ny*aspectRatio;
 
- random_tool *  _rt_now; 
+  const int  thread_num =4;
+std::atomic_int* _count;
 
+random_tool *  _rt_now; 
+std::vector<vec3>* _framebuffer;
+hitable* _scene;
+camera* _cmr;
 vec3 color(const ray& r,hitable* scene,int depth){
   auto& rt_now=*_rt_now;
    hit_record rc;
@@ -31,68 +43,116 @@ vec3 color(const ray& r,hitable* scene,int depth){
  
   return t*vec3(0.5f,0.7f,1.0f)+(1.0f-t)*vec3(1.0f,1.0f,1.0f);
 }
+
+
+void render_multi_thread(int begin_j,int end_j){
+     std::vector<vec3>& framebuffer=*_framebuffer;
+    random_tool&rt_now=* _rt_now; 
+    std::atomic_int&count=* _count;
+
+   for(int j=begin_j;j<=end_j;j++){
+        for(int i=0;i<nx;i++){
+           vec3 _color(0.0,0.0,0.0);
+           //simple oversample Antialiasing
+  for(int s=0;s<sample_num;s++){
+          float dx=rt_now.rand();  float dy=rt_now.rand();
+          float u=(float(i)+dx)/float(nx);
+          float v=(float(j)+dy)/float(ny);
+          
+         auto r=_cmr->get_ray(u,v);
+           auto color_hit=color(r,_scene,0);
+            _color+=color_hit;
+    }
+      _color/=float(sample_num);  
+ 
+      _color=vec3(sqrt( _color.r()),sqrt( _color.g()),sqrt( _color.b()));
+      _color*=255.99f;
+     framebuffer[i*ny+j]=_color;
+  }
+      count++;
+      std::cout<<count<<"/"<<ny<<std::endl;
+
+  }
+
+
+};
+
 int main() {
   std::cout<<"Beginng"<< std::endl;
 //set up random 
-
- 
-
 random_tool rt_now;_rt_now=&rt_now;
  
+ //set up multi-thread
+    std::thread thread_array[thread_num];
+   std::atomic_int count{ 0 };
+   _count=&count;
+//set up framebuffer
+std::vector<vec3> framebuffer;framebuffer.resize(nx*ny);
+_framebuffer=&framebuffer;
   //set up scene
-  hitable* list[5];
+  hitable* list[4];
   //main ball
   list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5),rt_now));
- list[1]=new sphere(vec3(0,-100.5,-1),100,new lambertian(vec3(0.8,0.8,0.0),rt_now));
+  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0),rt_now));
   list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2),0.0,rt_now));
-   list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5,rt_now));
-  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5,rt_now));
-hitable* scene=new hitable_list(list,5);
+  list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5,rt_now));
+  //list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5,rt_now));
+  hitable* scene=new hitable_list(list,4);
+  _scene=scene;
 
-  std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
-  float aspectRatio=2;
-   int ny=100;
-  int nx=ny*aspectRatio;
 
-  output<<"P3"<< std::endl;
-  output<<nx<<" "<<ny<< std::endl;
-  output<<255<< std::endl;
+
   camera cmr(
     vec3(0.0,0.0,0.0),
     vec3(-1.0*aspectRatio,1.0,-1.0),
     vec3(2.0*aspectRatio,0.0,0.0),
    vec3(0.0,-2.0,0.0) );
+ _cmr=&cmr;
+
   vec3 origin(0.0,0.0,0.0);
  
-  int sample_num=1024;
-  for(int j=0;j<ny;j++){
+
+/*   for(int j=0;j<ny;j++){
         for(int i=0;i<nx;i++){
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
   for(int s=0;s<sample_num;s++){
-               float dx=rt_now.rand();  float dy=rt_now.rand();
+          float dx=rt_now.rand();  float dy=rt_now.rand();
           float u=(float(i)+dx)/float(nx);
           float v=(float(j)+dy)/float(ny);
           
-         auto r=cmr.get_ray(u,v);
-        auto color_hit=color(r,scene,0);
+         auto r=_cmr->get_ray(u,v);
+        auto color_hit=color(r,_scene,0);
             _color+=color_hit;
     }
       _color/=float(sample_num);  
-
-      
-  /*               float u=(float(i)+dist(mt_r))/float(nx);
-          float v=(float(j)+dist(mt_r))/float(ny);
-          
-         auto r=cmr.get_ray(u,v);
-   
-            _color+=color(r,scene); */
-            //color correction
+ 
            _color=vec3(sqrt( _color.r()),sqrt( _color.g()),sqrt( _color.b()));
           _color*=255.99f;
-         output<<int(_color.r())<<" "<<int(_color.g())<<" "<<int(_color.b())<<" ";
+     framebuffer[i*ny+j]=_color;
   }
-    output<<std::endl;
+ 
+  } */
+  //begin rendering multi-thread
+    int size=ny/4;
+  std::thread tr1(render_multi_thread,0,size-1);
+  std::thread tr2(render_multi_thread,size,2*size-1);
+  std::thread tr3(render_multi_thread,2*size,3*size-1);
+  std::thread tr4(render_multi_thread,3*size,4*size-1);
+ tr1.join(); tr2.join();tr3.join();tr4.join();
+//output 
+  std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
+  output<<"P3"<< std::endl;
+  output<<nx<<" "<<ny<< std::endl;
+  output<<255<< std::endl;
+    for(int j=0;j<ny;j++){
+        for(int i=0;i<nx;i++){
+     
+      
+        auto& _color= framebuffer[i*ny+j];
+        output<<int(_color.r())<<" "<<int(_color.g())<<" "<<int(_color.b())<<" ";
+  }
+    //output<<std::endl;
   }
   output.close();
   std::cout<<"Ending"<< std::endl;
