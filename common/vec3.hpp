@@ -7,6 +7,7 @@
 #ifndef VEC3_H
  #define VEC3_H
 #endif
+ 
 using std::sqrt;
 using std::fabs;
 class vec3;
@@ -149,7 +150,7 @@ inline vec3 reflect(const vec3& v,const vec3& n){
 bool refract(const vec3& v,const vec3&n,float n_r,vec3& refracted){
          //default v is pointing into surface
         vec3 uv=unit_vector(v)*-1.0;
-         float dt=dot(uv,n);
+         float dt=fmin(dot(uv,n),1.0);
          float D=1.0-n_r*n_r*(1.0-dt*dt);
       if(D>0.0){
            refracted=n_r*(n*dt-uv)-n*sqrt(D);

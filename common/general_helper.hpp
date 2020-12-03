@@ -1,8 +1,8 @@
 #include<random>
 #include<chrono>
 #include <cstdlib>
-#ifndef RANDOM_TOOL_H
-#define RANDOM_TOOL_H
+#ifndef GENERAL_HELPER_H
+#define GENERAL_HELPER_H
 #endif
 #ifndef VEC3_H
   #include "vec3.hpp"

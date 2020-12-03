@@ -8,13 +8,13 @@
 #include<atomic>  
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
-#include "common/random_tool.hpp"
+#include "common/general_helper.hpp"
 #include "common/material.hpp"
 #include "common/sphere.hpp"
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 
-const int sample_num=128;
+const int sample_num=64;
  const  int ny=100;
  const float aspectRatio=2;
  const  int nx=ny*aspectRatio;
@@ -58,7 +58,7 @@ void render_multi_thread(int begin_j,int end_j){
           float dx=rt_now.rand();  float dy=rt_now.rand();
           float u=(float(i)+dx)/float(nx);
           float v=(float(j)+dy)/float(ny);
-          
+          v=1.0-v;
          auto r=_cmr->get_ray(u,v);
            auto color_hit=color(r,_scene,0);
             _color+=color_hit;
@@ -75,7 +75,7 @@ void render_multi_thread(int begin_j,int end_j){
   }
 
 
-};
+}; 
 
 int main() {
   std::cout<<"Beginng"<< std::endl;
@@ -90,23 +90,19 @@ random_tool rt_now;_rt_now=&rt_now;
 std::vector<vec3> framebuffer;framebuffer.resize(nx*ny);
 _framebuffer=&framebuffer;
   //set up scene
-  hitable* list[4];
+  hitable* list[5];
   //main ball
   list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5),rt_now));
   list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0),rt_now));
   list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2),0.0,rt_now));
   list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5,rt_now));
-  //list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5,rt_now));
-  hitable* scene=new hitable_list(list,4);
+  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5,rt_now));
+  hitable* scene=new hitable_list(list,5);
   _scene=scene;
 
 
 
-  camera cmr(
-    vec3(0.0,0.0,0.0),
-    vec3(-1.0*aspectRatio,1.0,-1.0),
-    vec3(2.0*aspectRatio,0.0,0.0),
-   vec3(0.0,-2.0,0.0) );
+  camera cmr(vec3(-2,2,1),vec3(0,0,-1),vec3(0,1,0),45,aspectRatio);
  _cmr=&cmr;
 
   vec3 origin(0.0,0.0,0.0);
@@ -147,8 +143,7 @@ _framebuffer=&framebuffer;
   output<<255<< std::endl;
     for(int j=0;j<ny;j++){
         for(int i=0;i<nx;i++){
-     
-      
+
         auto& _color= framebuffer[i*ny+j];
         output<<int(_color.r())<<" "<<int(_color.g())<<" "<<int(_color.b())<<" ";
   }

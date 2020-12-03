@@ -8,8 +8,8 @@
  #include "hitable.hpp"
 #endif
 
-#ifndef RANDOM_TOOL_H
-#include "random_tool.hpp"
+#ifndef  GENERAL_HELPER_H
+#include "general_helper.hpp"
 #endif
 
 #ifndef MATERIAL_H
