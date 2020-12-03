@@ -158,4 +158,6 @@ bool refract(const vec3& v,const vec3&n,double n_r,vec3& refracted){
             return true;
       }else return false;
 }
-
+//alias name
+using point3 = vec3;    
+using color = vec3;

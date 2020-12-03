@@ -8,6 +8,10 @@
   #include "vec3.hpp"
 #endif
 
+using std::sqrt;
+
+const double inf=std::numeric_limits<double>::infinity();
+const double pi = 3.1415926535897932385;
 inline double random_double() {
  
     return (double)rand() / ( (double)RAND_MAX + 1.0);
@@ -39,6 +43,35 @@ vec3 random_in_unit_sphere(){
      }
      return ans;
  };
+
+
+ void write_color( std::vector<vec3>& framebuffer,int pos,color& pixel_color, int samples_per_pixel) {
+    auto r = pixel_color.x();
+    auto g = pixel_color.y();
+    auto b = pixel_color.z();
+
+    // Replace NaN components with zero. See explanation in Ray Tracing: The Rest of Your Life.
+    if (r != r) r = 0.0;
+    if (g != g) g = 0.0;
+    if (b != b) b = 0.0;
+
+    // Divide the color by the number of samples and gamma-correct for gamma=2.0.
+    auto scale = 1.0 / samples_per_pixel;
+    r = sqrt(scale * r);
+    g = sqrt(scale * g);
+    b = sqrt(scale * b);
+
+  framebuffer[pos]=color(r,g,b);
+
+  
+};
+
+
+inline double clamp(double x, double min, double max) {
+    if (x < min) return min;
+    if (x > max) return max;
+    return x;
+    }
 const unsigned long long  _seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 class random_tool{
    public:

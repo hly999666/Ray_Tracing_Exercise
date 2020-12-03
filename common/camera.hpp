@@ -23,7 +23,7 @@ class camera{
     double focus_dist{1.0};
     camera()=default;
     camera(const vec3& lookForm,const vec3&  lookAt,const vec3&  up,double _fov,double _aspect,double aperture=0.0,double focus_dist=1.0):
-         fov(_fov),aspect(_aspect),origin(lookForm),target(lookAt),len_r(aperture/2){
+         fov(_fov),aspect(_aspect),origin(lookForm),target(lookAt),len_r(aperture*0.5){
                double theta=fov*M_PI/180;
                double half_height=tan(theta/2);
                double half_width=half_height*aspect;
