@@ -23,7 +23,7 @@ class material{
    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const=0;
 
 };
-float schlick(double cos,double rf){
+double schlick(double cos,double rf){
 
     double R0=(1.0-rf)/(1.0+rf);
     R0=R0*R0;
@@ -31,13 +31,13 @@ float schlick(double cos,double rf){
 };
 class lambertian:public material{
     public:
-     random_tool* rt;
+  
     vec3 albedo{0,0,0};
     
     lambertian()=default;
-    lambertian(const vec3 a, random_tool& _rt):albedo(a),rt(&_rt){};
+    lambertian(const vec3 a):albedo(a){};
     virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const{
-       vec3 tar=rc.p+rc.normal+rt->random_in_unit_sphere();
+       vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
        out_r=ray(rc.p,tar-rc.p);
        attenuation=albedo;
         return true;
@@ -47,18 +47,18 @@ class lambertian:public material{
 
 class metal:public material{
     public:
-     random_tool* rt;
+ 
     vec3 albedo{0,0,0};
-     float fuzz{0.0};
+     double fuzz{0.0};
     metal()=default;
-    metal(const vec3 a, float f,random_tool& _rt):albedo(a),rt(&_rt){
-                         if(f<0)fuzz=0;
-                         else  if(f>1)fuzz=1;
+    metal(const vec3 a, double f=0.0):albedo(a){
+                         if(f<0)fuzz=0.0;
+                         else  if(f>1)fuzz=1.0;
                           else  fuzz=f;
     };
     virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const{
        vec3 refl=reflect(unit_vector(in_r.direction()),rc.normal);
-       refl=refl+fuzz*rt->random_in_unit_sphere();refl.make_unit_vector();
+       refl=refl+fuzz*random_in_unit_sphere();refl.make_unit_vector();
        out_r=ray(rc.p,refl);
        attenuation=albedo;
        //check refl direction isn't pointing into surface
@@ -69,14 +69,14 @@ class metal:public material{
 
 class dielectric:public material{
      public:
-      random_tool* rt;
-     float ref_idx{1.5};
+ 
+     double ref_idx{1.5};
      dielectric()=default;
-     dielectric(float rI,random_tool& _rt):ref_idx(rI),rt(&_rt){};
+     dielectric(double rI ):ref_idx(rI) {};
      virtual bool scatter(const ray& in_r,const hit_record&rc,vec3&attentunation,ray& out_r)const{
               vec3 out_n;
               vec3 reflected_dir=reflect(in_r.direction(),rc.normal);
-              float n_r=1.0;
+              double n_r=1.0;
               attentunation=vec3(1.0,1.0,1.0);
             vec3 refracted_dir;
            
@@ -84,30 +84,39 @@ class dielectric:public material{
         
                  vec3 d_i=unit_vector(in_r.direction());
          
-           
+           double cos;
+           double refl_ratio;
               vec3 nn=unit_vector(out_n);
             if(dot(in_r.direction(),rc.normal)>0.0){
-                //from material into air 
-                      out_n=-1.0*rc.normal;
-                      n_r=ref_idx;
                 
+                      out_n=-1.0*rc.normal;
+                       n_r=ref_idx;
+                      cos=ref_idx*dot(in_r.direction(),rc.normal)/in_r.direction().length();
                       isFromAir=false;
             } else{
-                     //from air into material 
+                   
                       out_n= rc.normal;
                       n_r=1.0/ref_idx;
                    
-            
+                    cos=-1.0*dot(in_r.direction(),rc.normal)/in_r.direction().length();
                         isFromAir=true;
                         
                         }
             
             if(refract(in_r.direction(),out_n,n_r,refracted_dir)){
 
-                 out_r=ray(rc.p,refracted_dir);
+                refl_ratio=schlick(cos,ref_idx);
             }else{
                 out_r=ray(rc.p,reflected_dir) ;
-                return false;
+                refl_ratio=1.0;
+            } 
+              if(random_double()<refl_ratio){
+                 out_r=ray(rc.p,reflected_dir) ;
+               
+            }else{
+                 out_r=ray(rc.p,refracted_dir);
+             
+           
             } 
             return true;
      };

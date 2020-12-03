@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cfloat>
+ 
 #include<chrono>
 #include <fstream>
 #include <random>
@@ -14,10 +14,10 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 
-const int sample_num=64;
+const int sample_num=256;
  const  int ny=100;
- const float aspectRatio=2;
- const  int nx=ny*aspectRatio;
+ const double aspectRatio=2;
+ const  int nx=static_cast<int>((double)ny*(double)aspectRatio);
 
   const int  thread_num =4;
 std::atomic_int* _count;
@@ -39,9 +39,9 @@ vec3 color(const ray& r,hitable* scene,int depth){
   }
  // hit nothing ,get sky color
   vec3 dir_norm=unit_vector(r.direction());
-  float  t=0.5f*dir_norm.y()+0.5f;
+  double  t=0.5f*dir_norm.y()+0.5;
  
-  return t*vec3(0.5f,0.7f,1.0f)+(1.0f-t)*vec3(1.0f,1.0f,1.0f);
+  return t*vec3(0.5,0.7,1.0)+(1.0-t)*vec3(1.0,1.0,1.0);
 }
 
 
@@ -55,18 +55,18 @@ void render_multi_thread(int begin_j,int end_j){
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
   for(int s=0;s<sample_num;s++){
-          float dx=rt_now.rand();  float dy=rt_now.rand();
-          float u=(float(i)+dx)/float(nx);
-          float v=(float(j)+dy)/float(ny);
+          double dx=rt_now.rand();  double dy=rt_now.rand();
+          double u=(double(i)+dx)/double(nx);
+          double v=(double(j)+dy)/double(ny);
           v=1.0-v;
          auto r=_cmr->get_ray(u,v);
            auto color_hit=color(r,_scene,0);
             _color+=color_hit;
     }
-      _color/=float(sample_num);  
+      _color/=double(sample_num);  
  
       _color=vec3(sqrt( _color.r()),sqrt( _color.g()),sqrt( _color.b()));
-      _color*=255.99f;
+      _color*=255.999;
      framebuffer[i*ny+j]=_color;
   }
       count++;
@@ -92,17 +92,19 @@ _framebuffer=&framebuffer;
   //set up scene
   hitable* list[5];
   //main ball
-  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5),rt_now));
-  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0),rt_now));
-  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2),0.0,rt_now));
-  list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5,rt_now));
-  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5,rt_now));
+  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5)));
+  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0)));
+  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2)));
+  list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5));
+  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5));
   hitable* scene=new hitable_list(list,5);
   _scene=scene;
 
 
-
-  camera cmr(vec3(-2,2,1),vec3(0,0,-1),vec3(0,1,0),45,aspectRatio);
+vec3 lookFrom(3,3,2);
+vec3 lookAt(0,0,-1);
+double focus_dist=(lookFrom-lookAt).length();
+  camera cmr(lookFrom,lookAt,vec3(0,1,0),20.0,aspectRatio,2.0,focus_dist);
  _cmr=&cmr;
 
   vec3 origin(0.0,0.0,0.0);
@@ -113,15 +115,15 @@ _framebuffer=&framebuffer;
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
   for(int s=0;s<sample_num;s++){
-          float dx=rt_now.rand();  float dy=rt_now.rand();
-          float u=(float(i)+dx)/float(nx);
-          float v=(float(j)+dy)/float(ny);
+          double dx=rt_now.rand();  double dy=rt_now.rand();
+          double u=(double(i)+dx)/double(nx);
+          double v=(double(j)+dy)/double(ny);
           
          auto r=_cmr->get_ray(u,v);
         auto color_hit=color(r,_scene,0);
             _color+=color_hit;
     }
-      _color/=float(sample_num);  
+      _color/=double(sample_num);  
  
            _color=vec3(sqrt( _color.r()),sqrt( _color.g()),sqrt( _color.b()));
           _color*=255.99f;

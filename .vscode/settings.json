@@ -53,7 +53,7 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "cfloat": "cpp",
+        "cdouble": "cpp",
         "ctime": "cpp",
         "chrono": "cpp",
         "ratio": "cpp",

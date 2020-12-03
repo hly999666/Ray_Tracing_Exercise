@@ -13,10 +13,10 @@ hitable **list{nullptr};
 int list_size{0};
 hitable_list()=default;
 hitable_list(hitable** l,int n){list=l;list_size=n;};
-virtual bool hit(const ray& r,float t_min,float t_max,hit_record&rc)const;
+virtual bool hit(const ray& r,double t_min,double t_max,hit_record&rc)const;
 
 };
-  bool hitable_list::hit(const ray& r,float t_min,float t_max,hit_record&rc)const{
+  bool hitable_list::hit(const ray& r,double t_min,double t_max,hit_record&rc)const{
    hit_record temp_result;
    bool isHit=false;
    double current_hit_t=t_max;
