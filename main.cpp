@@ -15,9 +15,9 @@
 #include "common/camera.hpp"
 
 
-  int sample_num=64;
+  int sample_num=1024;
    double aspectRatio=2;
-  int ny=100;
+  int ny=512;
   int nx=static_cast<int>((double)ny*(double)aspectRatio);
 int max_depth=50;
   const int  thread_num =4;
@@ -27,23 +27,24 @@ std::atomic_int* _count;
 std::vector<vec3>* _framebuffer;
 hitable* _scene;
 camera* _cmr;
-vec3 shade(const ray& r,hitable* scene,int depth){
+color shade(const ray& r,hitable* scene,int depth){
  
    hit_record rc;
-   if(depth>=50)return vec3(0,0,0);
-  if(scene->hit(r,0.0,inf,rc)){
+   if(depth>max_depth)return color(0,0,0);
+   //note t_min should NOT be 0.0,eitherwise will produce some unexplainable numeric problem
+  if(scene->hit(r,0.001,inf,rc)){
        ray o_r;
-       vec3 atten;
+       color atten;
        //using depth to prone branch
-       if(depth<50&&rc.mat_ptr->scatter(r,rc,atten,o_r)){
+       if(depth<max_depth&&rc.mat_ptr->scatter(r,rc,atten,o_r)){
                 return atten*shade(o_r,scene,depth+1);
-       }return vec3(0,0,0);
+       }return color(0,0,0);
   }
  // hit nothing ,get sky color
   vec3 dir_norm=unit_vector(r.direction());
   double  t=0.5*(dir_norm.y()+1.0);
  
-  return t*vec3(0.5,0.7,1.0)+(1.0-t)*vec3(1.0,1.0,1.0);
+  return t*color(0.5,0.7,1.0)+(1.0-t)*color(1.0,1.0,1.0);
 }
 
 
@@ -75,7 +76,7 @@ void render_multi_thread(int begin_j,int end_j){
 
 
 }; 
-hitable *random_scene(){
+hitable *random_scene(camera& _cmr_){
    int n=500;
    hitable ** list=new hitable*[n+1];
    list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(vec3(0.5,0.5,0.5)));
@@ -109,15 +110,45 @@ hitable *random_scene(){
      list[count++]=new sphere(vec3(0,1,0),1.0,new dielectric(1.5));
      list[count++]=new sphere(vec3(-4,1,0),1.0,new lambertian(vec3(0.4,0.2,0.1)));
      list[count++]=new sphere(vec3(4,1,0),1.0,new metal(vec3(0.7,0.6,0.5),0.0));
+     
+     
+     //camera setting
+     vec3 lookFrom(13,2,3);
+     vec3 lookAt(0,0,0);
+   double focus_dist=10;
+   camera cmr(lookFrom,lookAt,vec3(0,1,0),20,aspectRatio,0.1,focus_dist);   
+   _cmr_=cmr;
+     
      return new hitable_list(list,count);
+};
+hitable* simple_scene(camera& _cmr_){
+  int n=5;
+   hitable ** list=new hitable*[n+1];
+  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5)));
+  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0)));
+  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2)));
+  list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5));
+  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5)); 
+
+
+
+  vec3 lookFrom(0,0,0);
+     vec3 lookAt(0,0,-1);
+   double focus_dist=1;
+   camera cmr(lookFrom,lookAt,vec3(0,1,0),90,aspectRatio,0.0,focus_dist);   
+   _cmr_=cmr;
+
+   return new hitable_list(list,5);
 }
 int main() {
   std::cout<<"Beginng"<< std::endl;
 //set up random 
- aspectRatio=16.0/9.0;
- nx=256;
+
+now_rt=new random_tool();
+ aspectRatio=2;
+ nx=512;
  ny=static_cast<int>(nx/aspectRatio);
- sample_num=16;
+ sample_num=1024;
 
  //set up multi-thread
     std::thread thread_array[thread_num];
@@ -127,23 +158,16 @@ int main() {
 std::vector<vec3> framebuffer;framebuffer.resize(nx*ny);
 _framebuffer=&framebuffer;
   //set up scene
-/*   hitable* list[5];
-  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5)));
-  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0)));
-  list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2)));
-  list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5));
-  list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5)); */
-  hitable* scene=random_scene();
+/*   */
+  camera cmr;
+  hitable* scene=simple_scene(cmr);
 
-vec3 lookFrom(13,2,3);
-vec3 lookAt(0,0,0);
-double focus_dist=10;
-camera cmr(lookFrom,lookAt,vec3(0,1,0),20,aspectRatio,0.1,focus_dist);
+
 
   _scene=scene;
  _cmr=&cmr;
 
-  vec3 origin(0.0,0.0,0.0);
+ 
  
 
 /*   for(int j=0;j<ny;j++){

@@ -36,6 +36,7 @@ class camera{
                horizontal=2*half_width*u*focus_dist;
                vertical=2*half_height*v*focus_dist;
     };
+camera(const camera& c)=default;
 camera(const vec3& o,const vec3& bl,const vec3& h,const vec3& v):
 origin(o),buttom_left(bl),horizontal(h),vertical(v){};
   ray get_ray(double s,double t){

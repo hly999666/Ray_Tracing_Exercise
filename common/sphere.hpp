@@ -38,14 +38,14 @@ bool sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)const{
 
      double t1= (-b-sd)/(2.0*a);
     double t2= (-b+sd)/(2.0*a);
-     if(t1<t_max&&t1>t_min){
+     if(t1<t_max&&t1>=t_min){
          rc.t=t1;
          rc.p=r.point_at_parameter(t1);
          rc.normal=(rc.p-center)/radius;
          rc.mat_ptr=mat_ptr;
          return true;
      }
-    if(t2<t_max&&t2>t_min){
+    if(t2<t_max&&t2>=t_min){
          rc.t=t2;
          rc.p=r.point_at_parameter(t2);
          rc.normal=(rc.p-center)/radius;

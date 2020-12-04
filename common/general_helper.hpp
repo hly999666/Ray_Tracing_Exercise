@@ -9,12 +9,43 @@
 #endif
 
 using std::sqrt;
-
+class random_tool;
+random_tool* now_rt;
 const double inf=std::numeric_limits<double>::infinity();
 const double pi = 3.1415926535897932385;
+
+const unsigned long long  _seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+class random_tool{
+   public:
+    unsigned  long long  seed{_seed};
+   std::mt19937_64 mt_r{_seed};
+   std::uniform_real_distribution<double>dist{0.0,1.0};
+  random_tool(){ 
+    const long long  seed_n = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+            seed=seed_n;
+            mt_r.seed(seed_n);
+    };
+   double rand(){
+          return dist(mt_r);
+
+    };
+ vec3 random_in_unit_sphere(){
+ 
+    vec3 ans(dist(mt_r),dist(mt_r),dist(mt_r));
+     ans=ans*2.0-vec3(1.0,1.0,1.0);
+     while(dot(ans,ans)>=1.0){
+
+       ans=vec3(dist(mt_r),dist(mt_r),dist(mt_r));
+        ans=ans*2.0-vec3(1.0,1.0,1.0);
+     }
+     return ans;
+ };
+};
+
 inline double random_double() {
  
-    return (double)rand() / ( (double)RAND_MAX + 1.0);
+    //return (double)rand() / ( (double)RAND_MAX + 1.0);
+    return now_rt->rand();
 }
 
 inline double random_double(double min, double max) {
@@ -72,31 +103,3 @@ inline double clamp(double x, double min, double max) {
     if (x > max) return max;
     return x;
     }
-const unsigned long long  _seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-class random_tool{
-   public:
-    unsigned  long long  seed{_seed};
-   std::mt19937_64 mt_r{_seed};
-   std::uniform_real_distribution<double>dist{0.0,1.0};
-  random_tool(){ 
-    const long long  seed_n = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-            seed=seed_n;
-            mt_r.seed(seed_n);
-    };
-   double rand(){
-          return dist(mt_r);
-
-    };
- vec3 random_in_unit_sphere(){
- 
-    vec3 ans(dist(mt_r),dist(mt_r),dist(mt_r));
-     ans=ans*2.0-vec3(1.0,1.0,1.0);
-     while(dot(ans,ans)>=1.0){
-
-       ans=vec3(dist(mt_r),dist(mt_r),dist(mt_r));
-        ans=ans*2.0-vec3(1.0,1.0,1.0);
-     }
-     return ans;
- };
-};
-
