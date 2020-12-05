@@ -21,9 +21,18 @@ class camera{
     double aspect{2.0};
     double len_r{0.0};
     double focus_dist{1.0};
+    double time0,time1;
     camera()=default;
-    camera(const vec3& lookForm,const vec3&  lookAt,const vec3&  up,double _fov,double _aspect,double aperture=0.0,double focus_dist=1.0):
-         fov(_fov),aspect(_aspect),origin(lookForm),target(lookAt),len_r(aperture*0.5){
+    camera(const vec3& lookForm,const vec3&  lookAt,const vec3&  up,
+                 double _fov,double _aspect,
+                 double aperture=0.0,double _focus_dist=1.0,
+                 double t0=0.0,double t1=1.0
+                 ):
+        origin(lookForm),target(lookAt),
+        fov(_fov),aspect(_aspect),
+        len_r(aperture*0.5),focus_dist(_focus_dist),
+         time0(t0),time1(t1)
+        {
                double theta=fov*M_PI/180;
                double half_height=tan(theta/2);
                double half_width=half_height*aspect;
@@ -45,7 +54,8 @@ origin(o),buttom_left(bl),horizontal(h),vertical(v){};
      vec3 offset_r=u*d_r.x()+v*d_r.y();
      vec3 now_o=origin+offset_r;
      vec3 dir=buttom_left+s*horizontal+t*vertical-now_o;
-      return    ray(now_o,dir);
+     double tm=time0+random_double()*(time1-time0);
+      return    ray(now_o,dir,tm);
   }
 };
 

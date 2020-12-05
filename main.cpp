@@ -31,7 +31,7 @@ color shade(const ray& r,hitable* scene,int depth){
  
    hit_record rc;
    if(depth>max_depth)return color(0,0,0);
-   //note t_min should NOT be 0.0,eitherwise will produce some unexplainable numeric problem
+   //note t_min should NOT be 0.0,eitherwise will produce some unexplainable numerical problem
   if(scene->hit(r,0.001,inf,rc)){
        ray o_r;
        color atten;
@@ -90,7 +90,11 @@ hitable *random_scene(camera& _cmr_){
                                       
                                      if(mat_rd<0.8){
                                        vec3 rand_color(random_double()*random_double(),random_double()*random_double(),random_double()*random_double());
-                                       list[count++]=new sphere(center,0.2,new lambertian(rand_color));
+                                       list[count++]=new moving_sphere(
+                                         center,center+vec3(0.0,0.5*random_double(),0.0),
+                                          0.0,1.0,
+                                          0.2, new lambertian(rand_color)
+                                       );
 
                                      }else if(mat_rd<0.95){
                                            vec3 rand_color(0.5*(1.0+random_double()),0.5*(1.0+random_double()),0.5*(1.0+random_double()));
@@ -116,7 +120,7 @@ hitable *random_scene(camera& _cmr_){
      vec3 lookFrom(13,2,3);
      vec3 lookAt(0,0,0);
    double focus_dist=10;
-   camera cmr(lookFrom,lookAt,vec3(0,1,0),20,aspectRatio,0.1,focus_dist);   
+   camera cmr(lookFrom,lookAt,vec3(0,1,0),20,aspectRatio,0.1,focus_dist,0.0,1.0);   
    _cmr_=cmr;
      
      return new hitable_list(list,count);
@@ -135,7 +139,7 @@ hitable* simple_scene(camera& _cmr_){
   vec3 lookFrom(0,0,0);
      vec3 lookAt(0,0,-1);
    double focus_dist=1;
-   camera cmr(lookFrom,lookAt,vec3(0,1,0),90,aspectRatio,0.0,focus_dist);   
+   camera cmr(lookFrom,lookAt,vec3(0,1,0),90,aspectRatio,0.0,focus_dist,0.0,0.1);   
    _cmr_=cmr;
 
    return new hitable_list(list,5);
@@ -146,9 +150,9 @@ int main() {
 
 now_rt=new random_tool();
  aspectRatio=2;
- nx=512;
+ nx=1024;
  ny=static_cast<int>(nx/aspectRatio);
- sample_num=1024;
+ sample_num=64;
 
  //set up multi-thread
     std::thread thread_array[thread_num];
@@ -160,37 +164,13 @@ _framebuffer=&framebuffer;
   //set up scene
 /*   */
   camera cmr;
-  hitable* scene=simple_scene(cmr);
+  hitable* scene=random_scene(cmr);
 
 
 
   _scene=scene;
  _cmr=&cmr;
-
  
- 
-
-/*   for(int j=0;j<ny;j++){
-        for(int i=0;i<nx;i++){
-           vec3 _color(0.0,0.0,0.0);
-           //simple oversample Antialiasing
-  for(int s=0;s<sample_num;s++){
-          double dx=rt_now.rand();  double dy=rt_now.rand();
-          double u=(double(i)+dx)/double(nx);
-          double v=(double(j)+dy)/double(ny);
-          
-         auto r=_cmr->get_ray(u,v);
-        auto color_hit=color(r,_scene,0);
-            _color+=color_hit;
-    }
-      _color/=double(sample_num);  
- 
-           _color=vec3(sqrt( _color.r()),sqrt( _color.g()),sqrt( _color.b()));
-          _color*=255.99f;
-     framebuffer[i*ny+j]=_color;
-  }
- 
-  } */
   //begin rendering multi-thread
     int size=ny/4;
   std::thread tr1(render_multi_thread,0,size-1);
