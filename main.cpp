@@ -13,7 +13,7 @@
 #include "common/sphere.hpp"
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
-
+#include "common/bvh.hpp"
 
   int sample_num=1024;
    double aspectRatio=2;
@@ -147,7 +147,7 @@ hitable* simple_scene(camera& _cmr_){
 int main() {
   std::cout<<"Beginng"<< std::endl;
 //set up random 
-
+ 
 now_rt=new random_tool();
  aspectRatio=2;
  nx=1024;
