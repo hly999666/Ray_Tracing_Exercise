@@ -14,7 +14,9 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
+#include "opencv2/opencv.hpp"
 
+ 
   int sample_num=1024;
    double aspectRatio=2;
   int ny=512;
@@ -144,15 +146,15 @@ hitable* simple_scene(camera& _cmr_){
 
    return new hitable_list(list,5);
 }
-int main() {
+int main(int argc, char **argv) {
   std::cout<<"Beginng"<< std::endl;
 //set up random 
  
 now_rt=new random_tool();
  aspectRatio=2;
- nx=1024;
+ nx=256;
  ny=static_cast<int>(nx/aspectRatio);
- sample_num=64;
+ sample_num=32;
 
  //set up multi-thread
     std::thread thread_array[thread_num];
@@ -177,7 +179,7 @@ _framebuffer=&framebuffer;
   std::thread tr2(render_multi_thread,size,2*size-1);
   std::thread tr3(render_multi_thread,2*size,3*size-1);
   std::thread tr4(render_multi_thread,3*size,4*size-1);
- tr1.join(); tr2.join();tr3.join();tr4.join();
+
 //output 
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
   output<<"P3"<< std::endl;
@@ -195,5 +197,37 @@ _framebuffer=&framebuffer;
     //output<<std::endl;
   }
   output.close();
-  std::cout<<"End"<< std::endl;
+
+
+  
+ 
+  
+
+std::cout<<"Rendering End"<< std::endl;
+   //simple opencv display
+
+    unsigned char buffer_1[400*500*3];
+    int counter=0;
+     for(int i=0;i<400;i++){
+          
+       for(int j=0;j<500;j++){
+              buffer_1[counter++]=0;
+              buffer_1[counter++]=(float)i/400*255.9;
+              buffer_1[counter++]=0;
+     }
+     }
+      int key = 0;
+      while (key != 27) {
+       auto buffer_1=convertFrameBuffer(*_framebuffer);
+        cv::Mat image(nx, ny, CV_8UC3,buffer_1.data());
+        image=image.t();
+        image.convertTo(image, CV_8UC3, 1.0f);
+        
+        cv::imshow("image", image);
+        key = cv::waitKey(10);
+      
+    }
+    tr1.join(); tr2.join();tr3.join();tr4.join(); 
+    
+  return 0;
 }

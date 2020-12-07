@@ -1,5 +1,6 @@
 #include<random>
 #include<chrono>
+#include<vector>
 #include <cstdlib>
 #ifndef GENERAL_HELPER_H
 #define GENERAL_HELPER_H
@@ -102,4 +103,17 @@ inline double clamp(double x, double min, double max) {
     if (x < min) return min;
     if (x > max) return max;
     return x;
-    }
+    };
+ 
+ std::vector<unsigned char> convertFrameBuffer(const std::vector<vec3>& fb){
+          std::vector<unsigned char>output;
+          int size=fb.size();
+          output.resize(size*3);
+          int count=0;
+          for(const vec3& c:fb){
+            output[count++]=static_cast<unsigned char>(256 * clamp(c.b(), 0.0, 0.999));
+             output[count++]=static_cast<unsigned char>(256 * clamp(c.g(), 0.0, 0.999));
+              output[count++]=static_cast<unsigned char>(256 * clamp(c.r(), 0.0, 0.999));
+          }
+            return output;
+    };
