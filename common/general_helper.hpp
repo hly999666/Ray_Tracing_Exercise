@@ -15,11 +15,10 @@ random_tool* now_rt;
 const double inf=std::numeric_limits<double>::infinity();
 const double pi = 3.1415926535897932385;
 
-const unsigned long long  _seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 class random_tool{
    public:
-    unsigned  long long  seed{_seed};
-   std::mt19937_64 mt_r{_seed};
+    unsigned  long long  seed;
+   std::mt19937_64 mt_r;
    std::uniform_real_distribution<double>dist{0.0,1.0};
   random_tool(){ 
     const long long  seed_n = std::chrono::high_resolution_clock::now().time_since_epoch().count();
@@ -76,8 +75,7 @@ vec3 random_in_unit_sphere(){
      return ans;
  };
 
-
- void write_color( std::vector<vec3>& framebuffer,int pos,color& pixel_color, int samples_per_pixel) {
+vec3 convertColor(const color& pixel_color, int samples_per_pixel=1,double gamma=1.0){
     auto r = pixel_color.x();
     auto g = pixel_color.y();
     auto b = pixel_color.z();
@@ -89,11 +87,15 @@ vec3 random_in_unit_sphere(){
 
     // Divide the color by the number of samples and gamma-correct for gamma=2.0.
     auto scale = 1.0 / samples_per_pixel;
-    r = sqrt(scale * r);
-    g = sqrt(scale * g);
-    b = sqrt(scale * b);
-
-  framebuffer[pos]=color(r,g,b);
+    r=pow(scale * r,gamma);  
+    g=pow(scale *g,gamma);
+    b=pow(scale *b,gamma);
+   
+  return color(r,g,b);
+}
+ void write_color( std::vector<vec3>& framebuffer,int pos,const color& pixel_color, int samples_per_pixel) {
+    
+  framebuffer[pos]=convertColor(pixel_color,samples_per_pixel,0.5);
 
   
 };
@@ -105,15 +107,32 @@ inline double clamp(double x, double min, double max) {
     return x;
     };
  
- std::vector<unsigned char> convertFrameBuffer(const std::vector<vec3>& fb){
+ std::vector<unsigned char> convertFrameBuffer(const std::vector<vec3>& fb,int sampling_num=1){
           std::vector<unsigned char>output;
           int size=fb.size();
           output.resize(size*3);
           int count=0;
-          for(const vec3& c:fb){
+          double gamma=1.0;
+           if(sampling_num!=1)gamma=0.5;
+          for(const vec3& _c:fb){
+            color c=convertColor(_c,sampling_num,gamma);
             output[count++]=static_cast<unsigned char>(256 * clamp(c.b(), 0.0, 0.999));
              output[count++]=static_cast<unsigned char>(256 * clamp(c.g(), 0.0, 0.999));
               output[count++]=static_cast<unsigned char>(256 * clamp(c.r(), 0.0, 0.999));
           }
             return output;
+    };
+
+    std::vector<vec3> reduceFrameBuffer(const std::vector<std::vector<vec3>>&frameBufferList){
+       std::vector<vec3>ans;
+        if(frameBufferList.size()==0)return ans;
+        if(frameBufferList[0].size()==0)return ans;     
+        int n=frameBufferList[0].size();   
+        ans.resize(n);
+       for(int i=0;i<n;i++){
+            for(const auto& fb:frameBufferList){
+                         ans[i]+=fb[i];
+            }
+       }
+       return ans;
     };

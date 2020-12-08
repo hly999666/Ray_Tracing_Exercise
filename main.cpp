@@ -3,9 +3,11 @@
 #include<chrono>
 #include <fstream>
 #include <random>
+#include <string>
 #include <vector>
 #include<thread> 
-#include<atomic>  
+#include<atomic> 
+ 
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
 #include "common/general_helper.hpp"
@@ -14,16 +16,22 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
+
 #include "opencv2/opencv.hpp"
 
  
-  int sample_num=1024;
-   double aspectRatio=2;
-  int ny=512;
-  int nx=static_cast<int>((double)ny*(double)aspectRatio);
-int max_depth=50;
-  const int  thread_num =4;
-std::atomic_int* _count;
+ const int sample_num=32;
+  const double aspectRatio=2;
+ const int ny=256;
+ const int nx=static_cast<int>((double)ny*(double)aspectRatio);
+const int max_depth=50;
+    int  thread_num =4;
+
+  const std::string multiThread_mode="progressive";
+  std::atomic_int finish_thread{0};
+ 
+  
+std::atomic_int* progress_count;
 
  
 std::vector<vec3>* _framebuffer;
@@ -33,7 +41,8 @@ color shade(const ray& r,hitable* scene,int depth){
  
    hit_record rc;
    if(depth>max_depth)return color(0,0,0);
-   //note t_min should NOT be 0.0,eitherwise will produce some unexplainable numerical problem
+   //note t_min should NOT be 0.0,otherwise will let to self-occulsion error due to floating-point precision problem
+  
   if(scene->hit(r,0.001,inf,rc)){
        ray o_r;
        color atten;
@@ -50,16 +59,16 @@ color shade(const ray& r,hitable* scene,int depth){
 }
 
 
-void render_multi_thread(int begin_j,int end_j){
+void render_multi_thread_scanline(int begin_j,int end_j){
      std::vector<vec3>& framebuffer=*_framebuffer;
   
-    std::atomic_int&count=* _count;
+    std::atomic_int&count=* progress_count;
 
    for(int j=begin_j;j<=end_j;j++){
         for(int i=0;i<nx;i++){
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
-  for(int s=0;s<sample_num;s++){
+        for(int s=0;s<sample_num;s++){
           double dx=random_double();  double dy=random_double();
           double u=(double(i)+dx)/double(nx-1);
           double v=(double(j)+dy)/double(ny-1);
@@ -72,12 +81,40 @@ void render_multi_thread(int begin_j,int end_j){
    
   }
       count++;
-      std::cout<<count<<"/"<<ny<<std::endl;
+      std::cout<<count<<"/"<<ny<<" pixel row finished"<<std::endl;
 
   }
-
+finish_thread++;
 
 }; 
+void render_multi_thread_progressive(int sampling_target,std::vector<std::vector<vec3>>* frameBufferList,int id){
+
+std::vector<vec3>&  framebuffer_local=frameBufferList->at(id);
+
+ 
+for(int s=0;s<sampling_target;s++){
+   for(int j=0;j<=ny;j++){
+        for(int i=0;i<nx;i++){
+           vec3 _color(0.0,0.0,0.0);
+           //simple oversample Antialiasing
+ 
+          double dx=random_double();  double dy=random_double();
+          double u=(double(i)+dx)/double(nx-1);
+          double v=(double(j)+dy)/double(ny-1);
+          v=1.0-v;
+         auto r=_cmr->get_ray(u,v);
+         auto color_hit=shade(r,_scene,0);
+         framebuffer_local[i*ny+j]+=color_hit;
+        }
+   }
+   
+   std::atomic_int&count=* progress_count;
+   count++;
+  std::cout<<count<<"/"<<sample_num<<" sampling finished"<<std::endl;
+}
+  
+ finish_thread++;
+}
 hitable *random_scene(camera& _cmr_){
    int n=500;
    hitable ** list=new hitable*[n+1];
@@ -146,22 +183,20 @@ hitable* simple_scene(camera& _cmr_){
 
    return new hitable_list(list,5);
 }
+
 int main(int argc, char **argv) {
   std::cout<<"Beginng"<< std::endl;
 //set up random 
  
 now_rt=new random_tool();
- aspectRatio=2;
- nx=256;
- ny=static_cast<int>(nx/aspectRatio);
- sample_num=32;
 
  //set up multi-thread
-    std::thread thread_array[thread_num];
-   std::atomic_int count{ 0 };
-   _count=&count;
+ 
+std::atomic_int pixel_count{ 0 };
+ progress_count=&pixel_count;
 //set up framebuffer
-std::vector<vec3> framebuffer;framebuffer.resize(nx*ny);
+std::vector<vec3> framebuffer;
+framebuffer.resize(nx*ny);
 _framebuffer=&framebuffer;
   //set up scene
 /*   */
@@ -170,40 +205,32 @@ _framebuffer=&framebuffer;
 
 
 
-  _scene=scene;
+_scene=scene;
  _cmr=&cmr;
- 
+ std::thread tr[4];
+ std::vector<std::vector<vec3>>frameBufferList;frameBufferList.resize(4);
+ for(auto& framebuffer_local:frameBufferList)framebuffer_local.resize(nx*ny);
+  if(multiThread_mode=="scanline"){
   //begin rendering multi-thread
-    int size=ny/4;
-  std::thread tr1(render_multi_thread,0,size-1);
-  std::thread tr2(render_multi_thread,size,2*size-1);
-  std::thread tr3(render_multi_thread,2*size,3*size-1);
-  std::thread tr4(render_multi_thread,3*size,4*size-1);
-
+  thread_num=4;
+   int size=ny/4;
+  tr[0]=std::thread(render_multi_thread_scanline,0,size-1);
+  tr[1]=std::thread(render_multi_thread_scanline,size,2*size-1);
+  tr[2]=std::thread(render_multi_thread_scanline,2*size,3*size-1);
+  tr[3]=std::thread(render_multi_thread_scanline,3*size,4*size-1);
+  }else if(multiThread_mode=="progressive"){
+    int sampling=sample_num/thread_num;
+           
+  tr[0]=std::thread(render_multi_thread_progressive,sampling,&frameBufferList,0);
+  tr[1]=std::thread(render_multi_thread_progressive,sampling,&frameBufferList,1);
+  tr[2]=std::thread(render_multi_thread_progressive,sampling,&frameBufferList,2);
+  tr[3]=std::thread(render_multi_thread_progressive,sampling,&frameBufferList,3);
+  }
 //output 
-  std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
-  output<<"P3"<< std::endl;
-  output<<nx<<" "<<ny<< std::endl;
-  output<<255<< std::endl;
-    for(int j=0;j<ny;j++){
-        for(int i=0;i<nx;i++){
-
-        auto& c= framebuffer[i*ny+j];
-        output << static_cast<int>(256 * clamp(c.r(), 0.0, 0.999)) << ' '
-                   << static_cast<int>(256 * clamp(c.g(), 0.0, 0.999)) << ' '
-                   << static_cast<int>(256 * clamp(c.b(), 0.0, 0.999)) << std::endl;
-
-  }
-    //output<<std::endl;
-  }
-  output.close();
 
 
-  
+
  
-  
-
-std::cout<<"Rendering End"<< std::endl;
    //simple opencv display
 
     unsigned char buffer_1[400*500*3];
@@ -214,20 +241,72 @@ std::cout<<"Rendering End"<< std::endl;
               buffer_1[counter++]=0;
               buffer_1[counter++]=(float)i/400*255.9;
               buffer_1[counter++]=0;
-     }
+        }
      }
       int key = 0;
+
+  int pixel_d=1;
+  int post_sample=0;
+  bool frameBufferUpdate=true;
       while (key != 27) {
-       auto buffer_1=convertFrameBuffer(*_framebuffer);
+            
+     if(multiThread_mode=="progressive"){
+        pixel_d=*progress_count;
+        if(post_sample<pixel_d){
+          frameBufferUpdate=true;
+          post_sample=pixel_d;
+        }else{
+          frameBufferUpdate=false;
+        }
+     }
+      if(true){
+         if(multiThread_mode=="progressive"){
+
+              framebuffer=reduceFrameBuffer(frameBufferList);
+
+         }
+        auto buffer_1=convertFrameBuffer(*_framebuffer,pixel_d);
         cv::Mat image(nx, ny, CV_8UC3,buffer_1.data());
         image=image.t();
         image.convertTo(image, CV_8UC3, 1.0f);
         
         cv::imshow("image", image);
-        key = cv::waitKey(10);
-      
+          key = cv::waitKey(10);
+         if(finish_thread==thread_num){
+     
+          std::cout<<"Rendering End"<< std::endl;
+          break;
+         }
+      }
+   
     }
-    tr1.join(); tr2.join();tr3.join();tr4.join(); 
+  std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
+  output<<"P3"<< std::endl;
+  output<<nx<<" "<<ny<< std::endl;
+  output<<255<< std::endl;
+    if(multiThread_mode=="progressive"){
+
+           framebuffer=reduceFrameBuffer(frameBufferList);
+            
+    }
+    
+
+    for(int j=0;j<ny;j++){
+        for(int i=0;i<nx;i++){
+        double scale=1.0/pixel_d;
+        auto& c= framebuffer[i*ny+j];
+
+    if(multiThread_mode=="progressive"){
+           c=convertColor(c,sample_num,0.5);
+     } 
+        output << static_cast<int>(256 * clamp(c.r(), 0.0, 0.999)) << ' '
+                   << static_cast<int>(256 * clamp(c.g(), 0.0, 0.999)) << ' '
+                   << static_cast<int>(256 * clamp(c.b(), 0.0, 0.999)) << std::endl;
+
+  }
+    //output<<std::endl;
+  }
+  output.close();
     
   return 0;
 }
