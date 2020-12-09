@@ -12,6 +12,10 @@
 #ifndef MATERIAL_H
  #include "material.hpp"
 #endif
+
+#ifndef BVH_H
+#include "bvh.hpp"
+#endif
 class sphere:public hitable{
    public:
       vec3 center{0,0,0};
@@ -23,6 +27,7 @@ class sphere:public hitable{
              delete mat_ptr;
      }
       virtual bool hit(const ray&r ,double tmin,double t_max,hit_record& rc)const;
+      virtual bool bounding_box(float t0,float t1,aabb& box)const;
 };
 
 
@@ -55,7 +60,10 @@ bool sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)const{
   }
 return false;
 };
-
+bool sphere::bounding_box(float t0,float t1,aabb& box)const{
+          box=aabb(center-vec3(radius,radius,radius),center+vec3(radius,radius,radius));
+         return true;
+};
 class moving_sphere:public hitable{
     public:
     vec3 center0,center1;
@@ -71,6 +79,7 @@ class moving_sphere:public hitable{
       radius(r),mat_ptr(m){};
 
     virtual bool hit(const ray& r,double tmin,double tmax,hit_record&rc)const;
+    virtual bool bounding_box(float t0,float t1,aabb& box)const;
     vec3 center(double time) const;
 };
 
@@ -106,5 +115,14 @@ bool moving_sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)co
      }
   }
 return false;
+};
+
+bool moving_sphere::bounding_box(float t0,float t1,aabb& box)const{
+         auto center0=center(t0);
+         auto center1=center(t1);
+          aabb  box0(center0-vec3(radius,radius,radius),center0+vec3(radius,radius,radius));
+          aabb box1(center1-vec3(radius,radius,radius),center1+vec3(radius,radius,radius));
+          box=aabb_union(box0,box1);
+         return true;
 };
 #endif

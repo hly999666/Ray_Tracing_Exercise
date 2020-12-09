@@ -6,6 +6,9 @@
 #ifndef VEC3_H
  #include "vec3.hpp"
 #endif
+
+ class aabb;
+
 class material;
 struct hit_record{
     double t;
@@ -19,7 +22,7 @@ class hitable{
 public:
 //pure virtual method ,must be children class overwritten
 virtual bool hit(const ray& r ,double t_min,double t_max,hit_record& rec)const =0;
-
+virtual bool bounding_box(float t0,float t2,aabb&box)const=0;
 
 };
 
