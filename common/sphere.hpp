@@ -27,7 +27,7 @@ class sphere:public hitable{
              delete mat_ptr;
      }
       virtual bool hit(const ray&r ,double tmin,double t_max,hit_record& rc)const;
-      virtual bool bounding_box(float t0,float t1,aabb& box)const;
+      virtual bool bounding_box(double t0,double t1,aabb& box)const;
 };
 
 
@@ -60,7 +60,7 @@ bool sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)const{
   }
 return false;
 };
-bool sphere::bounding_box(float t0,float t1,aabb& box)const{
+bool sphere::bounding_box(double t0,double t1,aabb& box)const{
           box=aabb(center-vec3(radius,radius,radius),center+vec3(radius,radius,radius));
          return true;
 };
@@ -79,7 +79,7 @@ class moving_sphere:public hitable{
       radius(r),mat_ptr(m){};
 
     virtual bool hit(const ray& r,double tmin,double tmax,hit_record&rc)const;
-    virtual bool bounding_box(float t0,float t1,aabb& box)const;
+    virtual bool bounding_box(double t0,double t1,aabb& box)const;
     vec3 center(double time) const;
 };
 
@@ -117,7 +117,7 @@ bool moving_sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)co
 return false;
 };
 
-bool moving_sphere::bounding_box(float t0,float t1,aabb& box)const{
+bool moving_sphere::bounding_box(double t0,double t1,aabb& box)const{
          auto center0=center(t0);
          auto center1=center(t1);
           aabb  box0(center0-vec3(radius,radius,radius),center0+vec3(radius,radius,radius));

@@ -20,7 +20,7 @@
 #include "opencv2/opencv.hpp"
 
  
- const int sample_num=32;
+ const int sample_num=64;
   const double aspectRatio=2;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -41,7 +41,7 @@ color shade(const ray& r,hitable* scene,int depth){
  
    hit_record rc;
    if(depth>max_depth)return color(0,0,0);
-   //note t_min should NOT be 0.0,otherwise will let to self-occulsion error due to floating-point precision problem
+   //note t_min should NOT be 0.0,otherwise will let to self-occulsion error due to doubleing-point precision problem
   
   if(scene->hit(r,0.001,inf,rc)){
        ray o_r;
@@ -162,7 +162,8 @@ hitable *random_scene(camera& _cmr_){
    camera cmr(lookFrom,lookAt,vec3(0,1,0),20,aspectRatio,0.1,focus_dist,0.0,1.0);   
    _cmr_=cmr;
      
-     return new hitable_list(list,count);
+     //return new hitable_list(list,count);
+     return new bvh_node(list,count,0.0,1.0);
 };
 hitable* simple_scene(camera& _cmr_){
   int n=5;
@@ -239,7 +240,7 @@ _scene=scene;
           
        for(int j=0;j<500;j++){
               buffer_1[counter++]=0;
-              buffer_1[counter++]=(float)i/400*255.9;
+              buffer_1[counter++]=(double)i/400*255.9;
               buffer_1[counter++]=0;
         }
      }

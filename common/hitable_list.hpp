@@ -17,7 +17,7 @@ int list_size{0};
 hitable_list()=default;
 hitable_list(hitable** l,int n){list=l;list_size=n;};
 virtual bool hit(const ray& r,double t_min,double t_max,hit_record&rc)const;
- virtual bool bounding_box(float t0,float t1,aabb& box)const;
+ virtual bool bounding_box(double t0,double t1,aabb& box)const;
 };
   bool hitable_list::hit(const ray& r,double t_min,double t_max,hit_record&rc)const{
    hit_record temp_result;
@@ -36,7 +36,7 @@ virtual bool hit(const ray& r,double t_min,double t_max,hit_record&rc)const;
 return isHit;
 };
 
-   bool hitable_list::bounding_box(float t0,float t1,aabb& box)const{
+   bool hitable_list::bounding_box(double t0,double t1,aabb& box)const{
    return false;
  }
 

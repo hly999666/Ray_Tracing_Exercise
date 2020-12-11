@@ -12,67 +12,109 @@
 
 #include <algorithm>
  
-inline double dmin(double a,double b){return a<b?a:b;};
-inline double dmax(double a,double b){return a>b?a:b;};
-class aabb{
-    public:
-    vec3 _min{0,0,0};
-    vec3 _max{0,0,0};
-    aabb()=default;
-    aabb(const vec3& a,const vec3& b):_min(a),_max(b){};
-    vec3 min()const {return _min;}
-    vec3 max()const {return _max;}
-    bool hit(const ray& r,double tmin,double tmax)const;
 
-};
-inline bool aabb::hit(const ray& r,double tmin,double tmax)const{
-         for(int i=0;i<3;i++){
-                   double invD=1.0/r.direction()[i];
-                   const vec3& o=r.origin();
-                   double t0=(_min[i]-o[i])*invD;
-                   double t1=(_max[i]- o[i])*invD;
-                   if(invD<0.0)std::swap(t0,t1);
-            tmin=dmax(t0,tmin);
-            tmax=dmin(t1,tmax);
-            if(tmax<=tmin)return false;
-         }
-
-        return true;
-};
-aabb aabb_union(const aabb& a,const aabb& b){
-       vec3 _min(dmin(a.min().x(),b.min().x()),
-                         dmin(a.min().y(),b.min().y()),
-                         dmin(a.min().z(),b.min().z()));
-        vec3 _max(dmax(a.max().x(),b.max().x()),
-                          dmax(a.max().y(),b.max().y()),
-                          dmax(a.max().z(),b.max().z()));
-        return aabb(_min,_max);
-};
 
 class bvh_node:public hitable{
      public:
-     hitable* left;
-     hitable* right;
+     hitable* left{nullptr};
+     hitable* right{nullptr};
      aabb box;
      bvh_node()=default;
      bvh_node(hitable** l,int n,double time0,double time1);
      virtual bool hit(const ray& r,double tmin,double tmax,hit_record&rc)const;
      virtual bool bounding_box(double t1,double t2,aabb& box)const;
-     
 };
 bool bvh_node::hit(const ray& r,double tmin,double tmax,hit_record&rc)const{
-    return false;
+     if(box.hit(r,tmin,tmax)){
+            hit_record left_rc,right_rc;
+            bool hit_left=false;bool hit_right=false;
+            if(left!=nullptr)hit_left=left->hit(r,tmin,tmax,left_rc);
+            if(right!=nullptr)hit_right=right->hit(r,tmin,tmax,right_rc);
+            if(hit_left&&hit_right){
+                if(left_rc.t<right_rc.t){
+                      rc=left_rc;
+               }else rc=right_rc;
+                    
+                    return true;
+            }else if(hit_left){
+                  rc=left_rc;
+                  return true;
+            }else if(hit_right){
+                  rc=right_rc;
+                  return true;
+            }else return false;
+     }else return false;
 };
-bool bvh_node::bounding_box(double t1,double t2,aabb& box)const{
-    return false;
+bool bvh_node::bounding_box(double t1,double t2, aabb& _box)const{
+      _box=box;
+      return true;
 };
+ 
+int box_compare_x(const void* a,const void* b){
+    aabb box_l;aabb box_r;
+    hitable* ah=*(hitable**)a;
+    hitable* bh=*(hitable**)b;
+    if(!ah->bounding_box(0.0,0.0,box_l)||!bh->bounding_box(0.0,0.0,box_r)){
 
-void build_bvh_tree(bvh_node* target,hitable** l,int n,double time0,double time1){
-     
-};
+          std::cerr<<"no bounding box"<<std::endl;
+          return 0;
+    }
+    if(box_l.min().x()-box_r.min().x()<0.0){
+        return -1;
+    }else return 1;
+}
+int box_compare_y(const void* a,const void* b){
+    aabb box_l;aabb box_r;
+    hitable* ah=*(hitable**)a;
+    hitable* bh=*(hitable**)b;
+    if(!ah->bounding_box(0.0,0.0,box_l)||!bh->bounding_box(0.0,0.0,box_r)){
 
+          std::cerr<<"no bounding box"<<std::endl;
+          return 0;
+    }
+    if(box_l.min().y()-box_r.min().y()<0.0){
+        return -1;
+    }else return 1;
+}
+int box_compare_z(const void* a,const void* b){
+    aabb box_l;aabb box_r;
+    hitable* ah=*(hitable**)a;
+    hitable* bh=*(hitable**)b;
+    if(!ah->bounding_box(0.0,0.0,box_l)||!bh->bounding_box(0.0,0.0,box_r)){
+
+          std::cerr<<"no bounding box during compare"<<std::endl;
+          return 0;
+    }
+    if(box_l.min().z()-box_r.min().z()<0.0){
+        return -1;
+    }else return 1;
+}
 bvh_node::bvh_node(hitable** l,int n,double time0,double time1){
+     int axis=int(3*random_double());
+     if(axis==0){
+         qsort(l,n,sizeof(hitable*),box_compare_x);
+     }else if(axis==1){
+         qsort(l,n,sizeof(hitable*),box_compare_y);
+     }else {
+         qsort(l,n,sizeof(hitable*),box_compare_z);
+     }
 
-    build_bvh_tree(this,l,n,time0,time1);
+     if(n==1){
+         left=l[0];right=l[0];
+     }else if(n==2){
+         left=l[0];right=l[1];
+     }else{
+         int half=n/2;
+         left=new bvh_node(l,half,time0,time1);
+         right=new bvh_node(l+half,n-half,time0,time1);
+     }
+     aabb box_left; aabb box_right;
+       if(!left->bounding_box(time0,time1,box_left)||!right->bounding_box(time0,time1,box_right)){
+
+          std::cerr<<"no bounding box during construct"<<std::endl;
+          
+    }else {
+        box=aabb_union(box_left,box_right);
+    }
 };
 #endif
