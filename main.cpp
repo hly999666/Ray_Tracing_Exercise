@@ -11,6 +11,7 @@
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
 #include "common/general_helper.hpp"
+#include "common/texture.hpp"
 #include "common/material.hpp"
 #include "common/sphere.hpp"
 #include "common/hitable_list.hpp"
@@ -118,7 +119,9 @@ for(int s=0;s<sampling_target;s++){
 hitable *random_scene(camera& _cmr_){
    int n=500;
    hitable ** list=new hitable*[n+1];
-   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(vec3(0.5,0.5,0.5)));
+   auto tex0=new constant_texture(vec3(0.8,0.8,0.8));
+   auto tex1=new constant_texture(vec3(0.5,0.6,0.5));
+   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new checker_texture(tex0,tex1,5.0)));
    int count=1;
      for(int i=-11;i<11;i++){
        for(int j=-11;j<11;j++){
@@ -132,7 +135,7 @@ hitable *random_scene(camera& _cmr_){
                                        list[count++]=new moving_sphere(
                                          center,center+vec3(0.0,0.5*random_double(),0.0),
                                           0.0,1.0,
-                                          0.2, new lambertian(rand_color)
+                                          0.2, new lambertian(new constant_texture(rand_color))
                                        );
 
                                      }else if(mat_rd<0.95){
@@ -151,7 +154,7 @@ hitable *random_scene(camera& _cmr_){
      }
 
      list[count++]=new sphere(vec3(0,1,0),1.0,new dielectric(1.5));
-     list[count++]=new sphere(vec3(-4,1,0),1.0,new lambertian(vec3(0.4,0.2,0.1)));
+     list[count++]=new sphere(vec3(-4,1,0),1.0,new lambertian(new constant_texture(vec3(0.4,0.2,0.1))));
      list[count++]=new sphere(vec3(4,1,0),1.0,new metal(vec3(0.7,0.6,0.5),0.0));
      
      
@@ -168,8 +171,8 @@ hitable *random_scene(camera& _cmr_){
 hitable* simple_scene(camera& _cmr_){
   int n=5;
    hitable ** list=new hitable*[n+1];
-  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(vec3(0.1,0.2,0.5)));
-  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(vec3(0.8,0.8,0.0)));
+  list[0]=new sphere(vec3(0,0,-1),0.5,new lambertian(new constant_texture(vec3(0.1,0.2,0.5))));
+  list[1]=new sphere(vec3(0,-100.5,-1.0),100,new lambertian(new constant_texture(vec3(0.8,0.8,0.0))));
   list[2]=new sphere(vec3(1,0,-1),0.5,new metal(vec3(0.8,0.6,0.2)));
   list[3]=new sphere(vec3(-1,0,-1),0.5,new dielectric(1.5));
   list[4]=new sphere(vec3(-1,0,-1),-0.45,new dielectric(1.5)); 

@@ -11,13 +11,14 @@
 #ifndef  GENERAL_HELPER_H
 #include "general_helper.hpp"
 #endif
-
-#ifndef MATERIAL_H
-#define  MATERIAL_H
+ 
+#ifndef TEXTURE_H
+#include  "texture.hpp"
 #endif
 #include <iostream>
 #include <algorithm>
-
+#ifndef MATERIAL_H
+#define MATERIAL_H
 class material{
    public:
    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const=0;
@@ -32,14 +33,14 @@ double schlick(double cos,double rf){
 class lambertian:public material{
     public:
   
-    vec3 albedo{0,0,0};
+    texture* albedo{nullptr};
     
     lambertian()=default;
-    lambertian(const vec3 a):albedo(a){};
+    lambertian(texture* a):albedo(a){};
     virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const{
        vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
        out_r=ray(rc.p,tar-rc.p);
-       attenuation=albedo;
+       attenuation=albedo->value(0.0,0.0,rc.p);
         return true;
     }
 
@@ -121,3 +122,4 @@ class dielectric:public material{
             return true;
      };
 };
+#endif
