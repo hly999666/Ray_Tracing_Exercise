@@ -17,7 +17,7 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
-
+#include "common/perlin_noise.hpp"
 #include "opencv2/opencv.hpp"
 
  
@@ -121,7 +121,7 @@ hitable *random_scene(camera& _cmr_){
    hitable ** list=new hitable*[n+1];
    auto tex0=new constant_texture(vec3(0.8,0.8,0.8));
    auto tex1=new constant_texture(vec3(0.5,0.6,0.5));
-   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new checker_texture(tex0,tex1,5.0)));
+   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new noise_texture(1.0)));
    int count=1;
      for(int i=-11;i<11;i++){
        for(int j=-11;j<11;j++){
@@ -193,9 +193,9 @@ int main(int argc, char **argv) {
 //set up random 
  
 now_rt=new random_tool();
-
+// perlin perlin_1();
  //set up multi-thread
- 
+
 std::atomic_int pixel_count{ 0 };
  progress_count=&pixel_count;
 //set up framebuffer
@@ -311,6 +311,6 @@ _scene=scene;
     //output<<std::endl;
   }
   output.close();
-    
+    int a=777;
   return 0;
 }

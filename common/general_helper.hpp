@@ -41,12 +41,14 @@ class random_tool{
      return ans;
  };
 };
-
+inline double rand0_1(){
+  return (double)rand() / ( (double)RAND_MAX + 1.0);
+};
 inline double random_double() {
  
     //return (double)rand() / ( (double)RAND_MAX + 1.0);
     return now_rt->rand();
-}
+};
 
 inline double random_double(double min, double max) {
     

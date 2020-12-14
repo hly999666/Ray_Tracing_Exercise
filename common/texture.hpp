@@ -1,6 +1,9 @@
 #ifndef VEC3_H
  #include "vec3.hpp"
 #endif
+#ifndef PERLIN_NOISE_H
+#include "perlin_noise.hpp" 
+#endif
 #ifndef TEXTURE_H
 #define  TEXTURE_H
  #include <cmath>
@@ -34,5 +37,15 @@ class checker_texture:public texture{
               return tex_1->value(u,v,p);
          }
      };
+};
+class noise_texture:public texture{
+    public:
+    perlin noise;
+    double freq{4.0};
+    noise_texture()=default;
+    noise_texture(double f):freq(f){};
+    virtual vec3 value(double u,double v,const vec3&p)const{
+        return vec3(1.0,1.0,1.0)*noise.noise(p,freq);
+    };
 };
 #endif
