@@ -121,7 +121,7 @@ hitable *random_scene(camera& _cmr_){
    hitable ** list=new hitable*[n+1];
    auto tex0=new constant_texture(vec3(0.8,0.8,0.8));
    auto tex1=new constant_texture(vec3(0.5,0.6,0.5));
-   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new noise_texture(1.0)));
+   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new noise_texture(4.0)));
    int count=1;
      for(int i=-11;i<11;i++){
        for(int j=-11;j<11;j++){
@@ -189,9 +189,10 @@ hitable* simple_scene(camera& _cmr_){
 }
 
 int main(int argc, char **argv) {
+
   std::cout<<"Beginng"<< std::endl;
 //set up random 
- 
+srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 now_rt=new random_tool();
 // perlin perlin_1();
  //set up multi-thread
