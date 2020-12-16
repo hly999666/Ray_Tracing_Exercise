@@ -45,7 +45,9 @@ class noise_texture:public texture{
     noise_texture()=default;
     noise_texture(double f):freq(f){};
     virtual vec3 value(double u,double v,const vec3&p)const{
-        return vec3(1.0,1.0,1.0)*noise.noise(p,freq);
+        //return vec3(1.0,1.0,1.0)*noise.turb(p,freq);
+
+        return vec3(1.0,1.0,1.0)*0.5*(1.0+sin(freq*p.z()+10.0*noise.turb(p,freq)));
     };
 };
 #endif

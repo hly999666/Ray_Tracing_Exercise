@@ -312,6 +312,5 @@ _scene=scene;
     //output<<std::endl;
   }
   output.close();
-    int a=777;
   return 0;
 }
