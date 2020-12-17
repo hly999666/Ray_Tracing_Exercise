@@ -50,6 +50,7 @@ inline double random_double() {
     return now_rt->rand();
 };
 
+
 inline double random_double(double min, double max) {
     
     return min + (max-min)*random_double();
@@ -57,6 +58,9 @@ inline double random_double(double min, double max) {
 
 inline int random_int(int min, int max) {
     return static_cast<int>(random_double(min, max+1.0));
+}
+vec3 random_vec3(double min=-1.0,double max=-1.0){
+        return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
 }
  vec3 random_in_unit_circle(){
               vec3 p;

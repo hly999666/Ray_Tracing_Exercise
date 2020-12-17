@@ -40,7 +40,7 @@ class lambertian:public material{
     virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const{
        vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
        out_r=ray(rc.p,tar-rc.p);
-       attenuation=albedo->value(0.0,0.0,rc.p);
+       attenuation=albedo->value(rc.u,rc.v,rc.p);
         return true;
     }
 

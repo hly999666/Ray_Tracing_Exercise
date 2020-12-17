@@ -16,6 +16,17 @@
 #ifndef BVH_H
 #include "bvh.hpp"
 #endif
+
+#include <cmath>
+
+
+const double PI = 3.1415926535897932385;
+void get_sphere_uv(const vec3&p,double& u,double& v){
+          double phi=atan2(p.z(),p.x());
+          double theta=asin(p.y());
+          u=1.0-(phi+PI)/(2.0*PI);
+          v=(theta+PI/2)/PI;
+};
 class sphere:public hitable{
    public:
       vec3 center{0,0,0};
@@ -48,6 +59,7 @@ bool sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)const{
          rc.p=r.point_at_parameter(t1);
          rc.normal=(rc.p-center)/radius;
          rc.mat_ptr=mat_ptr;
+        get_sphere_uv((rc.p-center)/radius,	rc.u,	rc.v);
          return true;
      }
     if(t2<t_max&&t2>=t_min){
@@ -55,6 +67,7 @@ bool sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)const{
          rc.p=r.point_at_parameter(t2);
          rc.normal=(rc.p-center)/radius;
          rc.mat_ptr=mat_ptr;
+        get_sphere_uv((rc.p-center)/radius,	rc.u,	rc.v);
          return true;
      }
   }
@@ -104,6 +117,7 @@ bool moving_sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)co
          rc.p=r.point_at_parameter(t1);
          rc.normal=(rc.p-center)/radius;
          rc.mat_ptr=mat_ptr;
+           get_sphere_uv((rc.p-center)/radius,	rc.u,	rc.v);
          return true;
      }
     if(t2<t_max&&t2>=t_min){
@@ -111,6 +125,7 @@ bool moving_sphere::hit(const ray&r ,double t_min,double t_max,hit_record& rc)co
          rc.p=r.point_at_parameter(t2);
          rc.normal=(rc.p-center)/radius;
          rc.mat_ptr=mat_ptr;
+           get_sphere_uv((rc.p-center)/radius,	rc.u,	rc.v);
          return true;
      }
   }
@@ -125,4 +140,6 @@ bool moving_sphere::bounding_box(double t0,double t1,aabb& box)const{
           box=aabb_union(box0,box1);
          return true;
 };
+
+
 #endif

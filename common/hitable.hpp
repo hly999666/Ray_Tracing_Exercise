@@ -48,6 +48,8 @@ struct hit_record{
     double t;
     vec3 p;
     vec3 normal;
+    double u{0.0};
+    double v{0.0};
     material* mat_ptr;
 };
 

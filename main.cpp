@@ -7,7 +7,6 @@
 #include <vector>
 #include<thread> 
 #include<atomic> 
- 
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
 #include "common/general_helper.hpp"
@@ -17,10 +16,15 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
-#include "common/perlin_noise.hpp"
+
+//use opencv to display
 #include "opencv2/opencv.hpp"
 
- 
+ //use stb_image to input image
+ #define STB_IMAGE_IMPLEMENTATION
+ #include "common/libs/stb_image.h"
+
+
  const int sample_num=64;
   const double aspectRatio=2;
  const int ny=256;
@@ -121,7 +125,13 @@ hitable *random_scene(camera& _cmr_){
    hitable ** list=new hitable*[n+1];
    auto tex0=new constant_texture(vec3(0.8,0.8,0.8));
    auto tex1=new constant_texture(vec3(0.5,0.6,0.5));
-   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new noise_texture(4.0)));
+   list[0]=new sphere(vec3(0,-1000.0,0),1000,new lambertian(new noise_texture(2.0)));
+
+  int	nx,	ny,	nn;
+  unsigned	char	*tex_data	=	stbi_load("./uv_checker.jpg",	&nx,	&ny,	&nn,	0);
+  material	*mat	=		new	lambertian(new	image_texture(tex_data,	nx,	ny));
+/* 
+  list[0]=new sphere(vec3(0,-1000.0,0),1000,mat); */
    int count=1;
      for(int i=-11;i<11;i++){
        for(int j=-11;j<11;j++){
@@ -154,7 +164,7 @@ hitable *random_scene(camera& _cmr_){
      }
 
      list[count++]=new sphere(vec3(0,1,0),1.0,new dielectric(1.5));
-     list[count++]=new sphere(vec3(-4,1,0),1.0,new lambertian(new constant_texture(vec3(0.4,0.2,0.1))));
+     list[count++]=new sphere(vec3(-4,1,0),1.0,mat);
      list[count++]=new sphere(vec3(4,1,0),1.0,new metal(vec3(0.7,0.6,0.5),0.0));
      
      

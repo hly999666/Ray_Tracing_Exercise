@@ -50,4 +50,22 @@ class noise_texture:public texture{
         return vec3(1.0,1.0,1.0)*0.5*(1.0+sin(freq*p.z()+10.0*noise.turb(p,freq)));
     };
 };
+
+class image_texture:public texture{
+    public:
+       unsigned char* data{nullptr};
+       int nx{0};int ny{0};
+       image_texture()=default;
+      image_texture(unsigned char* px,int a,int b):data(px),nx(a),ny(b) {};
+      virtual vec3 value(double u,double v,const vec3& p)const;
+      };
+
+vec3 image_texture::value(double u,double v,const vec3& p )const{
+      int i=u*nx;int j=(1.0-v)*ny-0.001;
+      i=clamp(i,0,nx-1);  j=clamp(j,0,ny-1);
+      double r=int(data[3*i+3*nx*j])/255.0;
+      double g=int(data[3*i+3*nx*j+1])/255.0;
+      double b=int(data[3*i+3*nx*j+2])/255.0;
+      return vec3(r,g,b);
+}
 #endif

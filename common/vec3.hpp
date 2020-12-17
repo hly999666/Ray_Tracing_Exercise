@@ -75,7 +75,7 @@ class vec3 {
              (*this)/=squared_length() ;
                 isUnit=true;
           }
-          
+       
 };
 
 inline double dot(const vec3&v1,const vec3&v2){
