@@ -13,6 +13,8 @@
 #include "common/texture.hpp"
 #include "common/material.hpp"
 #include "common/sphere.hpp"
+#include "common/rect.hpp"
+
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
@@ -25,7 +27,7 @@
  #include "common/libs/stb_image.h"
 
 
- const int sample_num=64;
+ const int sample_num=128;
   const double aspectRatio=2;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -51,16 +53,17 @@ color shade(const ray& r,hitable* scene,int depth){
   if(scene->hit(r,0.001,inf,rc)){
        ray o_r;
        color atten;
+       vec3 emitted=rc.mat_ptr->emitted(rc.u,rc.v,rc.p);
        //using depth to prone branch
        if(depth<max_depth&&rc.mat_ptr->scatter(r,rc,atten,o_r)){
-                return atten*shade(o_r,scene,depth+1);
-       }return color(0,0,0);
+                return emitted+atten*shade(o_r,scene,depth+1);
+       }return emitted;
   }
  // hit nothing ,get sky color
   vec3 dir_norm=unit_vector(r.direction());
   double  t=0.5*(dir_norm.y()+1.0);
  
-  return t*color(0.5,0.7,1.0)+(1.0-t)*color(1.0,1.0,1.0);
+  return (t*color(0.5,0.7,1.0)+(1.0-t)*color(1.0,1.0,1.0))*0.1;
 }
 
 
@@ -121,7 +124,7 @@ for(int s=0;s<sampling_target;s++){
  finish_thread++;
 }
 hitable *random_scene(camera& _cmr_){
-   int n=500;
+   int n=501;
    hitable ** list=new hitable*[n+1];
    auto tex0=new constant_texture(vec3(0.8,0.8,0.8));
    auto tex1=new constant_texture(vec3(0.5,0.6,0.5));
@@ -166,7 +169,12 @@ hitable *random_scene(camera& _cmr_){
      list[count++]=new sphere(vec3(0,1,0),1.0,new dielectric(1.5));
      list[count++]=new sphere(vec3(-4,1,0),1.0,mat);
      list[count++]=new sphere(vec3(4,1,0),1.0,new metal(vec3(0.7,0.6,0.5),0.0));
-     
+     list[count++]=new xy_rect(3,5,1,-3,-2,new diffuse_light(
+                                        new constant_texture(
+                                          vec3(0.7,0.6,0.5)
+                                        )   )  );
+                                      
+                                     
      
      //camera setting
      vec3 lookFrom(13,2,3);
@@ -197,7 +205,22 @@ hitable* simple_scene(camera& _cmr_){
 
    return new hitable_list(list,5);
 }
-
+hitable* simple_scene_light(camera& _cmr_){
+ texture* pertex=new noise_texture(4);
+ hitable **list=new hitable*[4];
+ list[0]=new sphere(vec3(0,-1000,0),1000,new lambertian(pertex));
+  list[1]=new sphere(vec3(0,2,0),2,new lambertian(pertex));
+  //note color of light more than 1,as energy emit
+    list[2]=new sphere(vec3(0,7,0),2,new diffuse_light(new constant_texture(vec3(4,4,4))));
+   list[3]=new xy_rect(3,5,1,3 ,-2,new diffuse_light(new constant_texture(vec3(4,4,4))));
+     
+     vec3 lookFrom=vec3(13,2,3)*2.0;
+     vec3 lookAt(0,0,0);
+   double focus_dist=20;
+   camera cmr(lookFrom,lookAt,vec3(0,1,0),20,aspectRatio,0.1,focus_dist,0.0,1.0);   
+   _cmr_=cmr;
+   return new hitable_list(list,4);
+}
 int main(int argc, char **argv) {
 
   std::cout<<"Beginng"<< std::endl;
@@ -216,7 +239,7 @@ _framebuffer=&framebuffer;
   //set up scene
 /*   */
   camera cmr;
-  hitable* scene=random_scene(cmr);
+  hitable* scene=simple_scene_light(cmr);
 
 
 

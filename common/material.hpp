@@ -22,8 +22,11 @@
 class material{
    public:
    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const=0;
-
+   virtual vec3 emitted(double u,double v,const vec3&p)const{
+        return vec3(0.0,0.0,0.0);
+    }
 };
+
 double schlick(double cos,double rf){
 
     double R0=(1.0-rf)/(1.0+rf);
@@ -121,5 +124,17 @@ class dielectric:public material{
             } 
             return true;
      };
+};
+
+
+class diffuse_light:public material{
+     public:
+     texture* emit{nullptr};
+     diffuse_light()=default;
+     diffuse_light(texture* a):emit(a){};
+     virtual bool scatter(const ray& in_r,const hit_record& rc,vec3& atten,ray& o_r)const{return false;};
+     virtual vec3 emitted(double u,double v,const vec3&p)const{
+          return emit->value(u,v,p);
+    }
 };
 #endif
