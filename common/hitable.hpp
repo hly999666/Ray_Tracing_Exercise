@@ -53,6 +53,7 @@ struct hit_record{
     material* mat_ptr;
 };
 
+
 class hitable{
 
 public:
@@ -63,7 +64,20 @@ virtual bool bounding_box(double t0,double t2,aabb&box)const=0;
 };
 
 
-
+class flip_normals:public hitable{
+    public:
+    hitable* ptr{nullptr};
+    flip_normals(hitable* p):ptr(p){};
+    virtual bool hit(const ray& r,double t_min,double t_max,hit_record&rc)const{
+         if(ptr->hit(r,t_min,t_max,rc)){
+              rc.normal=-1.0*rc.normal;
+              return true;
+         }else return false; 
+    };
+    virtual bool bounding_box(double t0,double t1,aabb& box)const{
+        return ptr->bounding_box(t0,t1,box);
+    }
+};
 
 
 #endif

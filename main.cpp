@@ -18,7 +18,7 @@
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
-
+#include "common/test_scene.hpp"
 //use opencv to display
 #include "opencv2/opencv.hpp"
 
@@ -27,9 +27,9 @@
  #include "common/libs/stb_image.h"
 
 
- const int sample_num=128;
-  const double aspectRatio=2;
- const int ny=256;
+ const int sample_num=256;
+  const double aspectRatio=1;
+ const int ny=512;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
 const int max_depth=50;
     int  thread_num =4;
@@ -60,10 +60,11 @@ color shade(const ray& r,hitable* scene,int depth){
        }return emitted;
   }
  // hit nothing ,get sky color
-  vec3 dir_norm=unit_vector(r.direction());
+ /*  vec3 dir_norm=unit_vector(r.direction());
   double  t=0.5*(dir_norm.y()+1.0);
  
-  return (t*color(0.5,0.7,1.0)+(1.0-t)*color(1.0,1.0,1.0))*0.1;
+  return (t*color(0.5,0.7,1.0)+(1.0-t)*color(1.0,1.0,1.0))*0.1; */
+  return color(0.0,0.0,0.0);
 }
 
 
@@ -239,12 +240,14 @@ _framebuffer=&framebuffer;
   //set up scene
 /*   */
   camera cmr;
-  hitable* scene=simple_scene_light(cmr);
+  hitable* scene=cornell_box(cmr,nx,ny);
 
 
 
 _scene=scene;
  _cmr=&cmr;
+
+
  std::thread tr[4];
  std::vector<std::vector<vec3>>frameBufferList;frameBufferList.resize(4);
  for(auto& framebuffer_local:frameBufferList)framebuffer_local.resize(nx*ny);

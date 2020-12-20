@@ -35,6 +35,38 @@ class xy_rect:public hitable{
     };
 };
 
+class xz_rect:public hitable{
+  public:
+  material* mp{nullptr};
+  double x0{0.0}; double x1{0.0};
+  double z0{0.0}; double z1{0.0};
+  double y{0.0};
+     xz_rect()=default;
+     xz_rect(double _x0,double _x1,double _z0,double _z1,double _y,material* _m):
+       x0(_x0),  x1(_x1),   z0(_z0),  z1(_z1), y(_y),mp(_m){};
+    virtual bool hit(const ray& r,double t0,double t1,hit_record&rc)const;
+    virtual bool bounding_box(double t0,double t1,aabb&box)const{
+        box=aabb(vec3(x0,y-0.0001,z0),vec3(x1,y+0.0001,z1));
+        return true;
+    };
+};
+
+class yz_rect:public hitable{
+  public:
+  material* mp{nullptr};
+  double y0{0.0}; double y1{0.0};
+  double z0{0.0}; double z1{0.0};
+  double x{0.0};
+     yz_rect()=default;
+     yz_rect(double _y0,double _y1,double _z0,double _z1,double _x,material* _m):
+       y0(_y0), y1(_y1),  z0(_z0),  z1(_z1), x(_x),mp(_m){};
+    virtual bool hit(const ray& r,double t0,double t1,hit_record&rc)const;
+    virtual bool bounding_box(double t0,double t1,aabb&box)const{
+        box=aabb(vec3(x-0.0001,y0,z0),vec3(x+0.0001,y1,z1));
+        return true;
+    };
+};
+
 bool xy_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const{
        double t=(z-r.origin().z())/r.direction().z();
       if(t<t0||t>t1)return false;
@@ -50,6 +82,38 @@ bool xy_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const{
      rc.normal=vec3(0,0,1);
      return true;
 };
+
+bool xz_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const{
+       double t=(y-r.origin().y())/r.direction().y();
+      if(t<t0||t>t1)return false;
+    double x=r.origin().x()+t*r.direction().x();
+    double z=r.origin().z()+t*r.direction().z();
+    if(x<x0||x>x1||z<z0||z>z1)return false;
+ 
+     rc.u=(x-x0)/(x1-x0);
+     rc.v=(z-z0)/(z1-z0); 
+     rc.t=t;
+     rc.mat_ptr=mp;
+     rc.p=r.point_at_parameter(t);
+     rc.normal=vec3(0,1,0);
+     return true;
+};
+
+bool yz_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const{
+    double t=(x-r.origin().x())/r.direction().x();
+    if(t<t0||t>t1)return false;
+    double y=r.origin().y()+t*r.direction().y();
+    double z=r.origin().z()+t*r.direction().z();
+    if(y<y0||y>y1||z<z0||z>z1)return false;
+     rc.u=(y-y0)/(y1-y0);
+     rc.v=(z-z0)/(z1-z0); 
+     rc.t=t;
+     rc.mat_ptr=mp;
+     rc.p=r.point_at_parameter(t);
+     rc.normal=vec3(1,0,0);
+     return true;
+};
+
 
 
 
