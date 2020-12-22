@@ -27,7 +27,7 @@ class xy_rect:public hitable{
   double z{0.0};
      xy_rect()=default;
      xy_rect(double _x0,double _x1,double _y0,double _y1,double _z,material* _m):
-       x0(_x0),  x1(_x1),   y0(_x0),  y1(_x1), z(_z),mp(_m){};
+       x0(_x0),  x1(_x1),   y0(_y0),  y1(_y1), z(_z),mp(_m){};
     virtual bool hit(const ray& r,double t0,double t1,hit_record&rc)const;
     virtual bool bounding_box(double t0,double t1,aabb&box)const{
         box=aabb(vec3(x0,y0,z-0.0001),vec3(x1,y1,z+0.0001));

@@ -19,6 +19,7 @@
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
 #include "common/test_scene.hpp"
+#include "common/box.hpp"
 //use opencv to display
 #include "opencv2/opencv.hpp"
 
@@ -29,7 +30,7 @@
 
  const int sample_num=256;
   const double aspectRatio=1;
- const int ny=512;
+ const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
 const int max_depth=50;
     int  thread_num =4;
