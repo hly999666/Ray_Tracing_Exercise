@@ -31,7 +31,9 @@
 #ifndef  BOX_H
 #include "box.hpp"
 #endif
-
+#ifndef  TRANSFORM_H
+#include "transform.hpp"
+#endif
 hitable* cornell_box(camera& cmr,double nx,double ny){
       hitable** list=new hitable*[8];
       int i=0;
@@ -47,8 +49,16 @@ hitable* cornell_box(camera& cmr,double nx,double ny){
       list[i++]=new flip_normals(new xy_rect(0,555,0,555,555,white));
  
       //box inside
-      list[i++]=new box(vec3(130,0,65),vec3(295,165,230),white);
-      list[i++]=new box(vec3(265,0,295),vec3(430,330,460),white);
+      list[i++]=new translate(
+                   new rotate_y(
+                   new box(vec3(0,0,0),vec3(165,165,165),white),
+                   -18.0),
+                   vec3(130,0,65));
+      list[i++]=new translate(
+                   new rotate_y(
+                   new box(vec3(0,0,0),vec3(165,330,165),white),
+                   15.0),
+                   vec3(265,0,295));
       
       list[i++]=new xz_rect(213,343,227,332,554,light);
       vec3 lookfrom(278,278,-800);

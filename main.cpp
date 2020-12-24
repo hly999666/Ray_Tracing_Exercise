@@ -14,12 +14,13 @@
 #include "common/material.hpp"
 #include "common/sphere.hpp"
 #include "common/rect.hpp"
-
 #include "common/hitable_list.hpp"
 #include "common/camera.hpp"
 #include "common/bvh.hpp"
 #include "common/test_scene.hpp"
 #include "common/box.hpp"
+#include "common/transform.hpp"
+
 //use opencv to display
 #include "opencv2/opencv.hpp"
 
@@ -28,14 +29,14 @@
  #include "common/libs/stb_image.h"
 
 
- const int sample_num=256;
+ const int sample_num=512;
   const double aspectRatio=1;
- const int ny=256;
+ const int ny=128;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
 const int max_depth=50;
     int  thread_num =4;
 
-  const std::string multiThread_mode="progressive";
+  const std::string multiThread_mode="scanline";
   std::atomic_int finish_thread{0};
  
   
@@ -239,7 +240,7 @@ std::vector<vec3> framebuffer;
 framebuffer.resize(nx*ny);
 _framebuffer=&framebuffer;
   //set up scene
-/*   */
+  
   camera cmr;
   hitable* scene=cornell_box(cmr,nx,ny);
 

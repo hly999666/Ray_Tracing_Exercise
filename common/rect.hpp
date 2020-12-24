@@ -46,7 +46,7 @@ class xz_rect:public hitable{
        x0(_x0),  x1(_x1),   z0(_z0),  z1(_z1), y(_y),mp(_m){};
     virtual bool hit(const ray& r,double t0,double t1,hit_record&rc)const;
     virtual bool bounding_box(double t0,double t1,aabb&box)const{
-        box=aabb(vec3(x0,y-0.0001,z0),vec3(x1,y+0.0001,z1));
+        box=aabb(vec3(x0,y-0.001,z0),vec3(x1,y+0.001,z1));
         return true;
     };
 };
@@ -62,7 +62,7 @@ class yz_rect:public hitable{
        y0(_y0), y1(_y1),  z0(_z0),  z1(_z1), x(_x),mp(_m){};
     virtual bool hit(const ray& r,double t0,double t1,hit_record&rc)const;
     virtual bool bounding_box(double t0,double t1,aabb&box)const{
-        box=aabb(vec3(x-0.0001,y0,z0),vec3(x+0.0001,y1,z1));
+        box=aabb(vec3(x-0.001,y0,z0),vec3(x+0.001,y1,z1));
         return true;
     };
 };

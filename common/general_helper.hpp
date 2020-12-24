@@ -15,6 +15,7 @@ random_tool* now_rt;
 const double inf=std::numeric_limits<double>::infinity();
 const double pi = 3.1415926535897932385;
 
+inline double degToRad(double d){return (pi/180.0)*d;};
 class random_tool{
    public:
     unsigned  long long  seed;
