@@ -20,7 +20,7 @@
 #include "common/test_scene.hpp"
 #include "common/box.hpp"
 #include "common/transform.hpp"
-
+#include "common/constant_medium.hpp"
 //use opencv to display
 #include "opencv2/opencv.hpp"
 
@@ -29,14 +29,14 @@
  #include "common/libs/stb_image.h"
 
 
- const int sample_num=512;
+ const int sample_num=256;
   const double aspectRatio=1;
- const int ny=128;
+ const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
 const int max_depth=50;
-    int  thread_num =1;
+    int  thread_num =4;
 
-  const std::string multiThread_mode="scanline";
+  const std::string multiThread_mode="progressive";
   std::atomic_int finish_thread{0};
  
   
@@ -255,12 +255,12 @@ _scene=scene;
  for(auto& framebuffer_local:frameBufferList)framebuffer_local.resize(nx*ny);
   if(multiThread_mode=="scanline"){
   //begin rendering multi-thread
-  thread_num=1;
-   int size=ny/1;
+  thread_num=4;
+   int size=ny/thread_num;
   tr[0]=std::thread(render_multi_thread_scanline,0,size-1);
-  //tr[1]=std::thread(render_multi_thread_scanline,size,2*size-1);
-  //tr[2]=std::thread(render_multi_thread_scanline,2*size,3*size-1);
-  //tr[3]=std::thread(render_multi_thread_scanline,3*size,4*size-1);
+  tr[1]=std::thread(render_multi_thread_scanline,size,2*size-1);
+  tr[2]=std::thread(render_multi_thread_scanline,2*size,3*size-1);
+  tr[3]=std::thread(render_multi_thread_scanline,3*size,4*size-1);
   }else if(multiThread_mode=="progressive"){
     int sampling=sample_num/thread_num;
            

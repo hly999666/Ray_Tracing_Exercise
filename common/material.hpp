@@ -137,4 +137,20 @@ class diffuse_light:public material{
           return emit->value(u,v,p);
     }
 };
+
+class isotropic : public material {
+    public:
+        texture*  albedo{nullptr};
+        isotropic()=default;
+        isotropic(color c) : albedo(new constant_texture(c)){};
+        isotropic(texture* a) : albedo(a) {};
+
+        virtual bool scatter(
+            const ray& in_r, const hit_record& rc, color& atten, ray& out_r
+        ) const   {
+            out_r = ray(rc.p, random_in_unit_sphere(), in_r.time());
+            atten = albedo->value(rc.u, rc.v, rc.p);
+            return true;
+        } 
+};
 #endif
