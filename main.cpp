@@ -25,9 +25,10 @@
 #include "opencv2/opencv.hpp"
 
  //use stb_image to input image
+#ifndef  STB_IMAGE_IMPLEMENTATION
  #define STB_IMAGE_IMPLEMENTATION
  #include "common/libs/stb_image.h"
-
+ #endif
 
  const int sample_num=256;
   const double aspectRatio=1;
@@ -52,7 +53,7 @@ color shade(const ray& r,hitable* scene,int depth){
    if(depth>max_depth)return color(0,0,0);
    //note t_min should NOT be 0.0,otherwise will let to self-occulsion error due to doubleing-point precision problem
   
-  if(scene->hit(r,0.001,inf,rc)){
+  if(scene->hit(r,0.001,5000,rc)){
        ray o_r;
        color atten;
        vec3 emitted=rc.mat_ptr->emitted(rc.u,rc.v,rc.p);
@@ -242,7 +243,7 @@ _framebuffer=&framebuffer;
   //set up scene
   
   camera cmr;
-  hitable* scene=cornell_box(cmr,nx,ny);
+  hitable* scene=final_scene_II(cmr,nx,ny);
 
 
 
