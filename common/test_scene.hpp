@@ -128,9 +128,9 @@ hitable *final_scene_II(camera& cmr,double nx,double ny){
             boundary=new sphere(vec3(0,0,0),5000,new dielectric(1.5));
           list[l++]=new constant_medium(boundary,0.0001,new constant_texture(vec3(1.0,1.0,1.0)));
           int n_x,n_y,n_n;
-          //unsigned char* tex_map=stbi_load("global_map.jpg",&n_x,&n_y,&n_n,0);
-          //material *emat=new lambertian(new image_texture(tex_map,n_x,n_y));
-           material * emat = new lambertian(new constant_texture(vec3(0.5, 0.5, 0.3)));
+          unsigned char* tex_map=stbi_load("global_map.jpg",&n_x,&n_y,&n_n,0);
+          material *emat=new lambertian(new image_texture(tex_map,n_x,n_y));
+               
           list[l++]=new sphere(vec3(400,200,400),100,emat);
            
           texture* pertext=new noise_texture(0.1);

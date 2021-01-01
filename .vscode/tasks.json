@@ -8,7 +8,7 @@
                 "--build",
                 ".",
                 "--config",
-                "release"
+                "debug"
             ],
             "options": {
                 "cwd": "${workspaceFolder}\\build"

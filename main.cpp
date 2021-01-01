@@ -7,7 +7,6 @@
 #include <vector>
 #include<thread> 
 #include<atomic> 
-#include <omp.h>
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
 #include "common/general_helper.hpp"
@@ -31,14 +30,14 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=64;
+ const int sample_num=256;
   const double aspectRatio=1;
- const int ny=512;
+ const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
 const int max_depth=50;
     int  thread_num =4;
 
-  const std::string multiThread_mode="scanline";
+  const std::string multiThread_mode="progressive";
   std::atomic_int finish_thread{0};
  
   
@@ -75,10 +74,9 @@ color shade(const ray& r,hitable* scene,int depth){
 void render_multi_thread_scanline(int begin_j,int end_j){
      std::vector<vec3>& framebuffer=*_framebuffer;
   
-   std::atomic_int&count=* progress_count;
-#pragma omp parallel for
+    std::atomic_int&count=* progress_count;
+
    for(int j=begin_j;j<=end_j;j++){
-       //std::cout<<"Begin row"<<j<<std::endl;
         for(int i=0;i<nx;i++){
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
@@ -260,14 +258,10 @@ _scene=scene;
   //begin rendering multi-thread
   thread_num=4;
    int size=ny/thread_num;
-
-   std::cout<<"Begin Rendering"<<std::endl;
-   //render_multi_thread_scanline(0,ny-1);
-   tr[0]=std::thread(render_multi_thread_scanline,0,ny-1);
-/*   tr[0]=std::thread(render_multi_thread_scanline,0,size-1);
+  tr[0]=std::thread(render_multi_thread_scanline,0,size-1);
   tr[1]=std::thread(render_multi_thread_scanline,size,2*size-1);
   tr[2]=std::thread(render_multi_thread_scanline,2*size,3*size-1);
-  tr[3]=std::thread(render_multi_thread_scanline,3*size,4*size-1); */
+  tr[3]=std::thread(render_multi_thread_scanline,3*size,4*size-1);
   }else if(multiThread_mode=="progressive"){
     int sampling=sample_num/thread_num;
            
@@ -322,7 +316,7 @@ _scene=scene;
         
         cv::imshow("image", image);
           key = cv::waitKey(10);
-         if(finish_thread==thread_num||*progress_count==ny){
+         if(finish_thread==thread_num){
      
           std::cout<<"Rendering End"<< std::endl;
           break;
