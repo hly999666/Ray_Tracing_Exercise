@@ -7,5 +7,6 @@ set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -O3")
 set(CMAKE_CXX_FLAGS_Release "${CMAKE_CXX_FLAGS_Release} -O3")
 SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3")
 
-add_executable(RT_I main.cpp)
+#add_executable(RT_I main.cpp)
+add_executable(RT_I main_2.cpp)
 target_link_libraries(RT_I ${OpenCV_LIBRARIES})

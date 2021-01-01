@@ -89,6 +89,11 @@ hitable *final_scene_II(camera& cmr,double nx,double ny){
            hitable** boxlist2=new hitable*[10000];
            material* white=new lambertian(new constant_texture(vec3(0.73,0.73,0.73)));
            material* ground=new lambertian(new constant_texture(vec3(0.48,0.83,0.53)));
+            //light
+            int l=0;
+            material* light =new diffuse_light(new constant_texture(vec3(7,7,7)));
+           list[l++]=new xz_rect(123,423,147,412,554,light);
+
            int b=0;
            for(int i=0;i<nb;i++){
                   for(int j=0;j<nb;j++){
@@ -103,29 +108,31 @@ hitable *final_scene_II(camera& cmr,double nx,double ny){
                  
                }
            }
-           int l=0;
+
            //all small box
            list[l++]=new bvh_node(boxlist,b,0,1);
-           material* light =new diffuse_light(new constant_texture(vec3(7,7,7)));
-           //light
-           list[l++]=new xz_rect(123,423,147,412,554,light);
+   
            //move sphere
           vec3 center(400,400,200);
           list[l++]=new moving_sphere(center,center+vec3(30,0,0),0,1,50,
                                                          new lambertian(new constant_texture(vec3(0.7,0.3,0.1))));
           list[l++]=new sphere(vec3(260,150,45),50,new dielectric(1.5));
           list[l++]=new sphere(vec3(0,150,145),50,new metal(vec3(0.8,0.8,0.9),10.0));
+        
           //subsurface sphere
           hitable* boundary=new sphere(vec3(360,150,145),70,new dielectric(1.5));
            list[l++]=boundary;
            list[l++]=new constant_medium(boundary,0.2,new constant_texture(vec3(0.2,0.4,0.9)));
+       
            // all cover mist
             boundary=new sphere(vec3(0,0,0),5000,new dielectric(1.5));
           list[l++]=new constant_medium(boundary,0.0001,new constant_texture(vec3(1.0,1.0,1.0)));
           int n_x,n_y,n_n;
           unsigned char* tex_map=stbi_load("global_map.jpg",&n_x,&n_y,&n_n,0);
           material *emat=new lambertian(new image_texture(tex_map,n_x,n_y));
+               
           list[l++]=new sphere(vec3(400,200,400),100,emat);
+           
           texture* pertext=new noise_texture(0.1);
           list[l++]=new sphere(vec3(220,280,300),80,new lambertian(pertext));
           int ns=1000;
@@ -138,7 +145,7 @@ hitable *final_scene_II(camera& cmr,double nx,double ny){
                         15
                  ),
                  vec3(-100,270,395)
-           );
+           );  
       //set up camera
            vec3  lookfrom = point3(478, 278, -600);
          vec3   lookat = point3(278, 278, 0);
