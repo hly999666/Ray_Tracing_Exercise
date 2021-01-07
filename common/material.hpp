@@ -21,7 +21,8 @@
 #define MATERIAL_H
 class material{
    public:
-   virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const=0;
+   virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf=1.0)const=0;
+   virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{return false;}
    virtual vec3 emitted(double u,double v,const vec3&p)const{
         return vec3(0.0,0.0,0.0);
     }
@@ -40,7 +41,10 @@ class lambertian:public material{
     
     lambertian()=default;
     lambertian(texture* a):albedo(a){};
-    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const{
+      virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{
+          return false;
+          }
+    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf )const{
        vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
        out_r=ray(rc.p,tar-rc.p);
        attenuation=albedo->value(rc.u,rc.v,rc.p);
@@ -60,7 +64,7 @@ class metal:public material{
                          else  if(f>1)fuzz=1.0;
                           else  fuzz=f;
     };
-    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r)const{
+    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf )const{
        vec3 refl=reflect(unit_vector(in_r.direction()),rc.normal);
        refl=refl+fuzz*random_in_unit_sphere();refl.make_unit_vector();
        out_r=ray(rc.p,refl);
@@ -77,7 +81,7 @@ class dielectric:public material{
      double ref_idx{1.5};
      dielectric()=default;
      dielectric(double rI ):ref_idx(rI) {};
-     virtual bool scatter(const ray& in_r,const hit_record&rc,vec3&attentunation,ray& out_r)const{
+     virtual bool scatter(const ray& in_r,const hit_record&rc,vec3&attentunation,ray& out_r,double&pdf )const{
               vec3 out_n;
               vec3 reflected_dir=reflect(in_r.direction(),rc.normal);
               double n_r=1.0;
@@ -132,7 +136,7 @@ class diffuse_light:public material{
      texture* emit{nullptr};
      diffuse_light()=default;
      diffuse_light(texture* a):emit(a){};
-     virtual bool scatter(const ray& in_r,const hit_record& rc,vec3& atten,ray& o_r)const{return false;};
+     virtual bool scatter(const ray& in_r,const hit_record& rc,vec3& atten,ray& o_r,double&pdf )const{return false;};
      virtual vec3 emitted(double u,double v,const vec3&p)const{
           return emit->value(u,v,p);
     }
@@ -144,10 +148,9 @@ class isotropic : public material {
         isotropic()=default;
         isotropic(color c) : albedo(new constant_texture(c)){};
         isotropic(texture* a) : albedo(a) {};
-
+           
         virtual bool scatter(
-            const ray& in_r, const hit_record& rc, color& atten, ray& out_r
-        ) const   {
+            const ray& in_r, const hit_record& rc, color& atten, ray& out_r,double&pdf) const   {
             out_r = ray(rc.p, random_in_unit_sphere(), in_r.time());
             atten = albedo->value(rc.u, rc.v, rc.p);
             return true;

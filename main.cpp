@@ -31,9 +31,9 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=64;
+ const int sample_num=128;
   const double aspectRatio=1;
- const int ny=512;
+ const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
 const int max_depth=50;
     int  thread_num =4;
