@@ -42,6 +42,7 @@ class random_tool{
      return ans;
  };
 };
+
 inline double rand0_1(){
   return (double)rand() / ( (double)RAND_MAX + 1.0);
 };
@@ -81,6 +82,14 @@ vec3 random_in_unit_sphere(){
      }
      return ans;
  };
+  vec3 random_in_hemisphere(const vec3& n){
+    vec3 dir;
+     do{
+       dir=random_in_unit_sphere();
+     }while(dot(dir,n)<0.0);
+
+     return dir;
+};
 vec3 random_on_unit_sphere(){
   vec3 p;
   do{

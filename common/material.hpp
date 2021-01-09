@@ -21,8 +21,8 @@
 #define MATERIAL_H
 class material{
    public:
-   virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf=1.0)const=0;
-   virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{return false;}
+   virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf)const=0;
+   virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{return 0.0;}
    virtual vec3 emitted(double u,double v,const vec3&p)const{
         return vec3(0.0,0.0,0.0);
     }
@@ -41,13 +41,25 @@ class lambertian:public material{
     
     lambertian()=default;
     lambertian(texture* a):albedo(a){};
-      virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{
-          return false;
-          }
+      virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& out_r)const{
+          double cos=dot(rc.normal,unit_vector(out_r.direction()));
+         if(cos<0.0)  cos=0; 
+          return cos/pi;
+    }
     virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf )const{
-       vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
-       out_r=ray(rc.p,tar-rc.p);
+  /*    vec3 dir=random_in_hemisphere(rc.normal); */
+  /*    do{
+       dir=random_in_unit_sphere();
+     }while(dot(dir,rc.normal)<0.0); */
+ 
+    /*    out_r=ray(rc.p,unit_vector(dir),in_r.time());
        attenuation=albedo->value(rc.u,rc.v,rc.p);
+        pdf=0.5/pi; */
+        //sampling with cos 
+        vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
+        out_r=ray(rc.p,unit_vector(tar-rc.p),in_r.time());
+           attenuation=albedo->value(rc.u,rc.v,rc.p);
+           pdf=dot(rc.normal,out_r.direction())/pi;
         return true;
     }
 
