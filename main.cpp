@@ -134,11 +134,28 @@ for(int s=0;s<sampling_target;s++){
 }
  
 int main(int argc, char **argv) {
+  //MC cos(theta) on unit hemisphere
 
-  std::cout<<"Beginng"<< std::endl;
+    std::cout<<"Beginng"<< std::endl;
 //set up random 
 srand(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 now_rt=new random_tool();
+
+
+
+  int N_sample=100000;
+double sum=0;
+for(int i=0;i<N_sample;i++){
+  vec3 v=random_cosine_direction();
+  const double _cos=v.z();
+  sum+=_cos*_cos*_cos/(_cos/pi);
+  if(i%5000==0){
+      std::cout<<"Diff "<<(sum/(i+1)-0.5*pi)<<std::endl;
+  }
+}
+return 0;
+
+
 // perlin perlin_1();
  //set up multi-thread
 
