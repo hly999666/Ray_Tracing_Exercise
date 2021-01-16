@@ -31,7 +31,7 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=512;
+ const int sample_num=256;
   const double aspectRatio=1;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -143,7 +143,7 @@ now_rt=new random_tool();
 
 
 
-  int N_sample=100000;
+/*   int N_sample=100000;
 double sum=0;
 for(int i=0;i<N_sample;i++){
   vec3 v=random_cosine_direction();
@@ -153,7 +153,7 @@ for(int i=0;i<N_sample;i++){
       std::cout<<"Diff "<<(sum/(i+1)-0.5*pi)<<std::endl;
   }
 }
-return 0;
+return 0; */
 
 
 // perlin perlin_1();

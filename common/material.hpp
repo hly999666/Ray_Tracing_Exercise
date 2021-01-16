@@ -56,11 +56,18 @@ class lambertian:public material{
        attenuation=albedo->value(rc.u,rc.v,rc.p);
         pdf=0.5/pi; */
         //sampling with cos 
-        vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
+        /* vec3 tar=rc.p+rc.normal+random_in_unit_sphere();
         out_r=ray(rc.p,unit_vector(tar-rc.p),in_r.time());
            attenuation=albedo->value(rc.u,rc.v,rc.p);
-           pdf=dot(rc.normal,out_r.direction())/pi;
-        return true;
+           pdf=dot(rc.normal,out_r.direction())/pi; */
+
+           onb uvw;
+            uvw.build_from_w(rc.normal);
+            vec3 dir=uvw.local(random_cosine_direction());
+            out_r=ray(rc.p,unit_vector(dir),in_r.time());
+            attenuation=albedo->value(rc.u,rc.v,rc.p);
+            pdf=dot(uvw.w(),out_r.direction())/pi;
+            return true;
     }
 
 };
