@@ -43,13 +43,13 @@
  #define STB_IMAGE_IMPLEMENTATION
  #include "./libs/stb_image.h"
  #endif
-hitable* cornell_box(camera& cmr,double nx,double ny){
+hitable* cornell_box(camera& cmr,double nx,double ny,hitable*& _light){
       hitable** list=new hitable*[8];
       int i=0;
       material* red=new lambertian(new constant_texture(vec3(0.65,0.05,0.05)));
       material* white=new lambertian(new constant_texture(vec3(0.73,0.73,0.73)));
       material* green=new lambertian(new constant_texture(vec3(0.12,0.45,0.15)));
-      material* light=new diffuse_light(new constant_texture(vec3(15,15,15)));
+      material* light=new diffuse_light(new constant_texture(vec3(15.0,15.0,15.0)));
       //outer box
       list[i++]=new flip_normals( new yz_rect(0,555,0,555,555,green));
       list[i++]=new yz_rect(0,555,0,555,0,red);
@@ -72,7 +72,8 @@ hitable* cornell_box(camera& cmr,double nx,double ny){
      // list[i++]=new constant_medium(box2,0.01,new constant_texture(vec3(0.0,0.0,0.0)));
     list[i++]=box1;  list[i++]=box2;
       //light
-      list[i++]=new xz_rect(213,343,227,332,554,light);
+      list[i++]=new flip_normals(new xz_rect(213,343,227,332,554,light));
+      _light=list[7];
       vec3 lookfrom(278,278,-800);
       vec3 lookAt(278,278,0);
       double dist_to_focus=10.0;

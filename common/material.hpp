@@ -23,7 +23,7 @@ class material{
    public:
    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf)const=0;
    virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{return 0.0;}
-   virtual vec3 emitted(double u,double v,const vec3&p)const{
+   virtual vec3 emitted(const ray& r_in,const hit_record&rc,double u,double v,const vec3&p)const{
         return vec3(0.0,0.0,0.0);
     }
 };
@@ -43,7 +43,7 @@ class lambertian:public material{
     lambertian(texture* a):albedo(a){};
       virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& out_r)const{
           double cos=dot(rc.normal,unit_vector(out_r.direction()));
-         if(cos<0.0)  cos=0; 
+          if(cos<0.0)  cos=0; 
           return cos/pi;
     }
     virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf )const{
@@ -156,8 +156,9 @@ class diffuse_light:public material{
      diffuse_light()=default;
      diffuse_light(texture* a):emit(a){};
      virtual bool scatter(const ray& in_r,const hit_record& rc,vec3& atten,ray& o_r,double&pdf )const{return false;};
-     virtual vec3 emitted(double u,double v,const vec3&p)const{
-          return emit->value(u,v,p);
+     virtual vec3 emitted(const ray& r_in,const hit_record&rc, double u,double v,const vec3&p)const{
+         if(dot(rc.normal,r_in.direction())<0.0) return emit->value(u,v,p);
+         else return vec3(0.0,0.0,0.0);
     }
 };
 

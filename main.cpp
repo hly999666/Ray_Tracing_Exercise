@@ -47,24 +47,57 @@ std::atomic_int* progress_count;
  
 std::vector<vec3>* _framebuffer;
 hitable* _scene;
+hitable* _light;
 camera* _cmr;
 color shade(const ray& r,hitable* scene,int depth){
  
    hit_record rc;
+
+     bool isHitScene=scene->hit(r,0.001,500000.0,rc);
    if(depth>max_depth)return color(0,0,0);
    //note t_min should NOT be 0.0,otherwise will let to self-occulsion error due to doubleing-point precision problem
-  
-  if(scene->hit(r,0.001,5000,rc)){
+  if(scene->hit(r,0.001,500000.0,rc)){
        ray o_r;
        color atten;
-       vec3 emitted=rc.mat_ptr->emitted(rc.u,rc.v,rc.p);
-       //using depth to prone branch
-       double pdf=1.0;
-       if(depth<max_depth&&rc.mat_ptr->scatter(r,rc,atten,o_r,pdf)){
-         double s_pdf=rc.mat_ptr->scattering_pdf(r,rc,o_r);
+       vec3 emitted(0.0,0.0,0.0);
+       vec3 direct_shade(0.0,0.0,0.0);
+       vec3 indirect_shade(0.0,0.0,0.0);
 
-                return emitted+atten*s_pdf*shade(o_r,scene,depth+1)/pdf;
-       }return emitted;
+
+
+//emit
+
+   if(rc.mat_ptr!=nullptr)emitted=rc.mat_ptr->emitted(r,rc,rc.u,rc.v,rc.p);           
+       double indirect_pdf=1.0;
+       double direct_pdf=1.0;
+       if(rc.mat_ptr->scatter(r,rc,atten,o_r,indirect_pdf)){
+         //direct lighting
+  /*  auto on_light = point3(random_double(213,343), 554, random_double(227,332)); 
+    auto to_light = on_light - rc.p; 
+    auto distance_squared = to_light.squared_length(); 
+     
+ to_light.make_unit_vector();
+    if (dot(to_light, rc.normal) < 0.0)  return emitted; 
+       
+ 
+    double light_area = (343-213)*(332-227); 
+    auto light_cosine = abs(to_light.y()); 
+    if (light_cosine < 0.000001)   return emitted; 
+      
+ 
+    direct_pdf = distance_squared / (light_cosine * light_area);
+   ray light_ray = ray(rc.p, to_light, r.time());
+  
+  double mat_brdf=rc.mat_ptr->scattering_pdf(r, rc, light_ray) ;
+    vec3 light_shade=shade(light_ray, scene, depth-1) ;
+        direct_shade= atten * mat_brdf*light_shade/direct_pdf; */
+
+
+         //indirect lighting
+        double s_pdf=rc.mat_ptr->scattering_pdf(r,rc,o_r);
+       indirect_shade=atten*s_pdf*shade(o_r,scene,depth+1)/indirect_pdf;
+       };
+       return  emitted+indirect_shade+direct_shade;
   }
  // hit nothing ,get sky color
  /*  vec3 dir_norm=unit_vector(r.direction());
@@ -82,9 +115,14 @@ void render_multi_thread_scanline(int begin_j,int end_j){
 #pragma omp parallel for
    for(int j=begin_j;j<=end_j;j++){
        //std::cout<<"Begin row"<<j<<std::endl;
+
         for(int i=0;i<nx;i++){
            vec3 _color(0.0,0.0,0.0);
            //simple oversample Antialiasing
+
+ /*       if(j>100&& i>20){
+         int a=666;
+       } */
         for(int s=0;s<sample_num;s++){
           double dx=random_double();  double dy=random_double();
           double u=(double(i)+dx)/double(nx-1);
@@ -168,7 +206,7 @@ _framebuffer=&framebuffer;
   //set up scene
   
   camera cmr;
-  hitable* scene=cornell_box(cmr,nx,ny);
+  hitable* scene=cornell_box(cmr,nx,ny,_light);
 
 
 

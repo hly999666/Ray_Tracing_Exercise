@@ -72,7 +72,7 @@ class vec3 {
           }
           inline void make_unit_vector() {
              if(isUnit)return;
-             (*this)/=squared_length() ;
+             (*this)/=length() ;
                 isUnit=true;
           }
        
