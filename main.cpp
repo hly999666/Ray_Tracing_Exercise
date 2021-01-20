@@ -22,6 +22,7 @@
 #include "common/box.hpp"
 #include "common/transform.hpp"
 #include "common/constant_medium.hpp"
+#include "common/pdf.hpp"
 //use opencv to display
 #include "opencv2/opencv.hpp"
 
@@ -31,7 +32,7 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=256;
+ const int sample_num=512;
   const double aspectRatio=1;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -57,7 +58,7 @@ color shade(const ray& r,hitable* scene,int depth){
    if(depth>max_depth)return color(0,0,0);
    //note t_min should NOT be 0.0,otherwise will let to self-occulsion error due to doubleing-point precision problem
   if(scene->hit(r,0.001,500000.0,rc)){
-       ray o_r;
+ 
        color atten;
        vec3 emitted(0.0,0.0,0.0);
        vec3 direct_shade(0.0,0.0,0.0);
@@ -67,37 +68,28 @@ color shade(const ray& r,hitable* scene,int depth){
 
 //emit
 
-   if(rc.mat_ptr!=nullptr)emitted=rc.mat_ptr->emitted(r,rc,rc.u,rc.v,rc.p);           
-       double indirect_pdf=1.0;
-       double direct_pdf=1.0;
-       if(rc.mat_ptr->scatter(r,rc,atten,o_r,indirect_pdf)){
-         //direct lighting
-  /*  auto on_light = point3(random_double(213,343), 554, random_double(227,332)); 
-    auto to_light = on_light - rc.p; 
-    auto distance_squared = to_light.squared_length(); 
-     
- to_light.make_unit_vector();
-    if (dot(to_light, rc.normal) < 0.0)  return emitted; 
-       
- 
-    double light_area = (343-213)*(332-227); 
-    auto light_cosine = abs(to_light.y()); 
-    if (light_cosine < 0.000001)   return emitted; 
+   if(rc.mat_ptr!=nullptr)emitted=rc.mat_ptr->emitted(r,rc,rc.u,rc.v,rc.p);
+
+   double  pdf_val=1.0;
+   ray out_r;
+   color reflect_shade;
+    double brdf_factor=0.0;
+   if(!rc.mat_ptr->scatter(r,rc,atten,out_r,pdf_val))return emitted;
+   
+
+
+
+    auto pdf_direct= new hitable_pdf(_light, rc.p); 
+    auto pdf_indirect = new cosine_pdf(rc.normal); 
+    mixture_pdf mixed_pdf(pdf_direct, pdf_indirect); 
+    out_r = ray(rc.p, mixed_pdf.generate(), r.time()); 
+    pdf_val = mixed_pdf.value(out_r.direction());
+    brdf_factor=rc.mat_ptr->scattering_pdf(r, rc, out_r);
+    if(pdf_val-0.0>0.00001){
+      reflect_shade= atten * brdf_factor*shade(out_r, scene,depth+1) / pdf_val;
+    }else reflect_shade=vec3(0.0,0.0,0.0);
       
- 
-    direct_pdf = distance_squared / (light_cosine * light_area);
-   ray light_ray = ray(rc.p, to_light, r.time());
-  
-  double mat_brdf=rc.mat_ptr->scattering_pdf(r, rc, light_ray) ;
-    vec3 light_shade=shade(light_ray, scene, depth-1) ;
-        direct_shade= atten * mat_brdf*light_shade/direct_pdf; */
-
-
-         //indirect lighting
-        double s_pdf=rc.mat_ptr->scattering_pdf(r,rc,o_r);
-       indirect_shade=atten*s_pdf*shade(o_r,scene,depth+1)/indirect_pdf;
-       };
-       return  emitted+indirect_shade+direct_shade;
+   return  emitted+reflect_shade;
   }
  // hit nothing ,get sky color
  /*  vec3 dir_norm=unit_vector(r.direction());

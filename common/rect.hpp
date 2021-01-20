@@ -45,12 +45,28 @@ class xz_rect:public hitable{
      xz_rect(double _x0,double _x1,double _z0,double _z1,double _y,material* _m):
        x0(_x0),  x1(_x1),   z0(_z0),  z1(_z1), y(_y),mp(_m){};
     virtual bool hit(const ray& r,double t0,double t1,hit_record&rc)const;
-    virtual bool bounding_box(double t0,double t1,aabb&box)const{
+    virtual bool bounding_box(double t0,double t1,aabb&box)const {
         box=aabb(vec3(x0,y-0.001,z0),vec3(x1,y+0.001,z1));
         return true;
     };
+     virtual double pdf_value(const vec3& o, const vec3& v) const override;
+     virtual vec3 random(const vec3&  o) const override;
 };
-
+  double xz_rect::pdf_value(const vec3& o, const vec3& v)const
+{ 
+            hit_record rec; 
+            if (!this->hit(ray(o, v), 0.001, inf, rec))return 0.0; 
+            auto area = (x1-x0)*(z1-z0); 
+            auto distance_squared = rec.t * rec.t * v.squared_length(); 
+            auto cos = abs(dot(v, rec.normal) / v.length()); 
+ 
+            return distance_squared / (cos * area); 
+  };
+vec3 xz_rect::random(const vec3&  o)const
+  { 
+            auto random_point = vec3(random_double(x0,x1), y, random_double(z0,z1)); 
+            return random_point - o; 
+      };
 class yz_rect:public hitable{
   public:
   material* mp{nullptr};
@@ -83,7 +99,7 @@ bool xy_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const{
      return true;
 };
 
-bool xz_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const{
+bool xz_rect::hit(const ray& r,double t0,double t1,hit_record&rc)const {
        double t=(y-r.origin().y())/r.direction().y();
       if(t<t0||t>t1)return false;
     double x=r.origin().x()+t*r.direction().x();

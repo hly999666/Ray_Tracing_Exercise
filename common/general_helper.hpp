@@ -4,7 +4,7 @@
 #include <cstdlib>
 #ifndef GENERAL_HELPER_H
 #define GENERAL_HELPER_H
-#endif
+
 #ifndef VEC3_H
   #include "vec3.hpp"
 #endif
@@ -176,8 +176,8 @@ inline double clamp(double x, double min, double max) {
           vec3 u()const{return axis[0];};
           vec3 v()const{return axis[1];};
           vec3 w()const{return axis[2];};
-          vec3 local(double x,double y,double z){return x*u()+y*v()+z*w();}
-          vec3 local(const vec3&a){return a.x()*u()+ a.y()*v()+ a.z()*w();}
+          vec3 local(double x,double y,double z)const{return x*u()+y*v()+z*w();}
+          vec3 local(const vec3&a)const{return a.x()*u()+ a.y()*v()+ a.z()*w();}
           void build_from_w(const vec3&);
     };
 
@@ -188,4 +188,5 @@ inline double clamp(double x, double min, double max) {
            else a=vec3(1,0,0);
            axis[1]=unit_vector(cross(w(),a));
            axis[0]=cross(w(),v());
-            };
+  };
+  #endif

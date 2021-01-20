@@ -58,9 +58,11 @@ class hitable{
 
 public:
 //pure virtual method ,must be children class overwritten
+
 virtual bool hit(const ray& r ,double t_min,double t_max,hit_record& rec)const =0;
 virtual bool bounding_box(double t0,double t2,aabb&box)const=0;
-
+virtual double pdf_value(const vec3& o, const vec3& v) const { return 0.0;}; 
+virtual vec3 random(const vec3& o) const { return vec3(0, 0, 0);};
 };
 
 
@@ -77,6 +79,12 @@ class flip_normals:public hitable{
     virtual bool bounding_box(double t0,double t1,aabb& box)const{
         return ptr->bounding_box(t0,t1,box);
     }
+    virtual double  pdf_value(const vec3& o, const vec3& v)const override{
+          return ptr->pdf_value(o,v);
+    };
+    virtual vec3 random(const vec3& o) const override{
+       return ptr->random(o);
+     };
 };
 
 
