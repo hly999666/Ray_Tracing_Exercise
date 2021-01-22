@@ -32,7 +32,7 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=512;
+ const int sample_num=256;
   const double aspectRatio=1;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -74,19 +74,25 @@ color shade(const ray& r,hitable* scene,int depth){
    ray out_r;
    color reflect_shade;
     double brdf_factor=0.0;
-   if(!rc.mat_ptr->scatter(r,rc,atten,out_r,pdf_val))return emitted;
+
+    scatter_record s_rc;
+   if(!rc.mat_ptr->scatter(r,rc,s_rc))return emitted;
    
+   if(s_rc.is_specular){
+     //specular ray,not pdf 
+        return s_rc.attenuation*shade(s_rc.specular_ray,scene,depth+1);
+   }
 
 
-
-    auto pdf_direct= new hitable_pdf(_light, rc.p); 
-    auto pdf_indirect = new cosine_pdf(rc.normal); 
-    mixture_pdf mixed_pdf(pdf_direct, pdf_indirect); 
-    out_r = ray(rc.p, mixed_pdf.generate(), r.time()); 
+    auto pdf_direct = new hitable_pdf(_light, rc.p); 
+    mixture_pdf mixed_pdf(pdf_direct, s_rc.pdf_ptr); 
+ 
+     out_r = ray(rc.p, mixed_pdf.generate(), r.time()); 
+     
     pdf_val = mixed_pdf.value(out_r.direction());
     brdf_factor=rc.mat_ptr->scattering_pdf(r, rc, out_r);
     if(pdf_val-0.0>0.00001){
-      reflect_shade= atten * brdf_factor*shade(out_r, scene,depth+1) / pdf_val;
+      reflect_shade= s_rc.attenuation * brdf_factor*shade(out_r, scene,depth+1) / pdf_val;
     }else reflect_shade=vec3(0.0,0.0,0.0);
       
    return  emitted+reflect_shade;
@@ -198,10 +204,14 @@ _framebuffer=&framebuffer;
   //set up scene
   
   camera cmr;
-  hitable* scene=cornell_box(cmr,nx,ny,_light);
+  hitable* scene=cornell_box(cmr,nx,ny);
 
-
-
+auto light_plane=new xz_rect(213, 343, 227, 332, 554,nullptr);
+auto glass_sphere=new sphere(vec3(190, 90, 190), 90, nullptr);
+hitable* table[2]={light_plane,glass_sphere};
+//Note _light in fact is not ligth ,which should mean anything to be more sampled.
+//_light=new hitable_list(table,2); 
+ _light=light_plane;
 _scene=scene;
  _cmr=&cmr;
 

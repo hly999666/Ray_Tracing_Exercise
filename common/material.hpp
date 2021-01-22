@@ -15,15 +15,36 @@
 #ifndef TEXTURE_H
 #include  "texture.hpp"
 #endif
+#ifndef PDF_H
+#include  "pdf.hpp"
+ #endif
 #include <iostream>
 #include <algorithm>
 #ifndef MATERIAL_H
 #define MATERIAL_H
+
+struct scatter_record { 
+    ray specular_ray; 
+    bool is_specular; 
+    vec3 attenuation; 
+    pdf* pdf_ptr; 
+};
+ 
 class material{
    public:
-   virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf)const=0;
-   virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& scattered)const{return 0.0;}
-   virtual vec3 emitted(const ray& r_in,const hit_record&rc,double u,double v,const vec3&p)const{
+   virtual bool scatter(
+       const ray&in_r,
+       const hit_record& rc,
+       scatter_record& s_rc)const=0;
+   virtual double scattering_pdf(
+       const ray&in_r,
+       const hit_record&rc,
+       const ray& scattered)const{return 0.0;}
+   virtual vec3 emitted(
+       const ray& r_in,
+       const hit_record&rc,
+       double u,double v,
+       const vec3&p)const{
         return vec3(0.0,0.0,0.0);
     }
 };
@@ -46,7 +67,10 @@ class lambertian:public material{
           if(cos<0.0)  cos=0; 
           return cos/pi;
     }
-    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf )const{
+    virtual bool scatter(
+    const ray&in_r,
+    const hit_record& rc,
+    scatter_record& s_rc )const{
   /*    vec3 dir=random_in_hemisphere(rc.normal); */
   /*    do{
        dir=random_in_unit_sphere();
@@ -60,13 +84,20 @@ class lambertian:public material{
         out_r=ray(rc.p,unit_vector(tar-rc.p),in_r.time());
            attenuation=albedo->value(rc.u,rc.v,rc.p);
            pdf=dot(rc.normal,out_r.direction())/pi; */
+            vec3 attenuation;
+              ray out_r;
+              double pdf; 
 
-           onb uvw;
+            onb uvw;
             uvw.build_from_w(rc.normal);
             vec3 dir=uvw.local(random_cosine_direction());
             out_r=ray(rc.p,unit_vector(dir),in_r.time());
             attenuation=albedo->value(rc.u,rc.v,rc.p);
             pdf=dot(uvw.w(),out_r.direction())/pi;
+
+            s_rc.is_specular=false;
+            s_rc.attenuation=attenuation;
+            s_rc.pdf_ptr=new cosine_pdf(rc.normal);
             return true;
     }
 
@@ -83,12 +114,25 @@ class metal:public material{
                          else  if(f>1)fuzz=1.0;
                           else  fuzz=f;
     };
-    virtual bool scatter(const ray&in_r,const hit_record& rc,vec3 & attenuation,ray& out_r,double&pdf )const{
+    virtual bool scatter(
+        const ray&in_r,
+        const hit_record& rc,
+         scatter_record& s_rc)const{
+             vec3 attenuation;
+              ray out_r;
+              double pdf; 
        vec3 refl=reflect(unit_vector(in_r.direction()),rc.normal);
-       refl=refl+fuzz*random_in_unit_sphere();refl.make_unit_vector();
+       refl=refl+fuzz*random_in_unit_sphere();
+       refl.make_unit_vector();
        out_r=ray(rc.p,refl);
        attenuation=albedo;
        //check refl direction isn't pointing into surface
+
+        
+            s_rc.specular_ray = ray(rc.p, refl); 
+            s_rc.attenuation = albedo; 
+            s_rc.is_specular = true; 
+            s_rc.pdf_ptr =nullptr; 
         return (dot(out_r.direction(),rc.normal)>0.0);
     }
 
@@ -100,7 +144,13 @@ class dielectric:public material{
      double ref_idx{1.5};
      dielectric()=default;
      dielectric(double rI ):ref_idx(rI) {};
-     virtual bool scatter(const ray& in_r,const hit_record&rc,vec3&attentunation,ray& out_r,double&pdf )const{
+     virtual bool scatter(
+         const ray& in_r,
+         const hit_record&rc,
+         scatter_record& s_rc)const{
+              vec3 attentunation;
+              ray out_r;
+              double pdf; 
               vec3 out_n;
               vec3 reflected_dir=reflect(in_r.direction(),rc.normal);
               double n_r=1.0;
@@ -145,6 +195,11 @@ class dielectric:public material{
              
            
             } 
+
+         s_rc.is_specular = true; 
+         s_rc.pdf_ptr = nullptr; 
+         s_rc.attenuation = color(1.0, 1.0, 1.0);
+         s_rc.specular_ray=out_r;
             return true;
      };
 };
@@ -155,7 +210,7 @@ class diffuse_light:public material{
      texture* emit{nullptr};
      diffuse_light()=default;
      diffuse_light(texture* a):emit(a){};
-     virtual bool scatter(const ray& in_r,const hit_record& rc,vec3& atten,ray& o_r,double&pdf )const{return false;};
+     virtual bool scatter(const ray& in_r,const hit_record& rc,scatter_record& s_rc)const{return false;};
      virtual vec3 emitted(const ray& r_in,const hit_record&rc, double u,double v,const vec3&p)const{
          if(dot(rc.normal,r_in.direction())<0.0) return emit->value(u,v,p);
          else return vec3(0.0,0.0,0.0);
@@ -170,7 +225,10 @@ class isotropic : public material {
         isotropic(texture* a) : albedo(a) {};
            
         virtual bool scatter(
-            const ray& in_r, const hit_record& rc, color& atten, ray& out_r,double&pdf) const   {
+            const ray& in_r, const hit_record& rc, scatter_record& s_rc) const   {
+                color atten;
+                 ray out_r;
+                 double pdf;
             out_r = ray(rc.p, random_in_unit_sphere(), in_r.time());
             atten = albedo->value(rc.u, rc.v, rc.p);
             return true;
