@@ -17,6 +17,10 @@
 #include "bvh.hpp"
 #endif
 
+#ifndef GENERAL_HELPER_H
+ #include "general_helper.hpp"
+#endif
+
 #include <cmath>
 
 
@@ -145,11 +149,33 @@ bool moving_sphere::bounding_box(double t0,double t1,aabb& box)const{
 
 double sphere::pdf_value(const vec3& o, const vec3& v) const { 
  
-    return  0.0; 
-} 
+    hit_record rc; 
+    if (!this->hit(ray(o, v), 0.001, inf, rc)) return 0; 
+    vec3 dir=(center-o);
+    auto cos_theta_max = sqrt(1 - radius*radius/dir.squared_length()); 
+    auto solid_angle = 2*pi*(1-cos_theta_max); 
  
+    return  1 / solid_angle; 
+} 
+ inline vec3 random_to_sphere(double radius, double distance_squared) { 
+    auto r1 = random_double(); 
+    auto r2 = random_double(); 
+    double max_theta=sqrt(1-radius*radius/distance_squared);
+    auto z = 1 + r2*(max_theta - 1); 
+ 
+    auto phi = 2*pi*r1; 
+    auto x = cos(phi)*sqrt(1-z*z); 
+    auto y = sin(phi)*sqrt(1-z*z); 
+ 
+    return vec3(x, y, z); 
+}
 vec3 sphere::random(const point3& o) const { 
-    return vec3(0.0,0.0,0.0);
+    vec3 direction = center - o; 
+    auto distance_squared = direction.squared_length(); 
+    onb uvw; 
+    direction.make_unit_vector();
+    uvw.build_from_w(direction); 
+    return uvw.local(random_to_sphere(radius, distance_squared)); 
 }
 
 #endif

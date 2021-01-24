@@ -211,7 +211,7 @@ auto glass_sphere=new sphere(vec3(190, 90, 190), 90, nullptr);
 hitable* table[2]={light_plane,glass_sphere};
 //Note _light in fact is not ligth ,which should mean anything to be more sampled.
 //_light=new hitable_list(table,2); 
- _light=light_plane;
+ _light=glass_sphere;
 _scene=scene;
  _cmr=&cmr;
 
