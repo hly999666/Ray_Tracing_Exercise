@@ -72,4 +72,7 @@ class mixture_pdf : public pdf {
                 return p1->generate(); 
         } 
 };
+
+
+
 #endif

@@ -39,6 +39,8 @@ class sphere:public hitable{
      }
       virtual bool hit(const ray&r ,double tmin,double t_max,hit_record& rc)const;
       virtual bool bounding_box(double t0,double t1,aabb& box)const;
+      virtual double pdf_value(const vec3& o, const vec3& v) const override; 
+      virtual vec3 random(const vec3& o) const override;
 };
 
 
@@ -141,5 +143,13 @@ bool moving_sphere::bounding_box(double t0,double t1,aabb& box)const{
          return true;
 };
 
+double sphere::pdf_value(const vec3& o, const vec3& v) const { 
+ 
+    return  0.0; 
+} 
+ 
+vec3 sphere::random(const point3& o) const { 
+    return vec3(0.0,0.0,0.0);
+}
 
 #endif
