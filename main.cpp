@@ -32,7 +32,7 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=512;
+ const int sample_num=4096;
   const double aspectRatio=1;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -94,7 +94,7 @@ color shade(const ray& r,hitable* scene,int depth){
     if(pdf_val-0.0>0.00001){
       reflect_shade= s_rc.attenuation * brdf_factor*shade(out_r, scene,depth+1) / pdf_val;
     }else reflect_shade=vec3(0.0,0.0,0.0);
-      
+      delete pdf_direct;
    return  emitted+reflect_shade;
   }
  // hit nothing ,get sky color
@@ -296,6 +296,14 @@ _scene=scene;
       }
    
     }
+
+/*     while(true){
+           if(finish_thread==thread_num||*progress_count==ny){
+     
+          std::cout<<"Rendering End"<< std::endl;
+          break;
+         }
+    } */
   std::fstream output("output.ppm", std::ios::in| std::ios::out| std::ios::trunc);
   output<<"P3"<< std::endl;
   output<<nx<<" "<<ny<< std::endl;

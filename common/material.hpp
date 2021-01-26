@@ -23,11 +23,16 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-struct scatter_record { 
+class scatter_record { 
+    public:
     ray specular_ray; 
     bool is_specular; 
     vec3 attenuation; 
-    pdf* pdf_ptr; 
+    pdf* pdf_ptr{nullptr}; 
+    scatter_record()=default;
+    ~scatter_record(){
+        delete pdf_ptr;
+    }
 };
  
 class material{
@@ -62,6 +67,7 @@ class lambertian:public material{
     
     lambertian()=default;
     lambertian(texture* a):albedo(a){};
+
       virtual double scattering_pdf(const ray&in_r,const hit_record&rc,const ray& out_r)const{
           double cos=dot(rc.normal,unit_vector(out_r.direction()));
           if(cos<0.0)  cos=0; 

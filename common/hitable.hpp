@@ -44,13 +44,18 @@ aabb aabb_union(const aabb& a,const aabb& b){
         return aabb(_min,_max);
 };
 class material;
-struct hit_record{
+class hit_record{
+    public:
     double t;
     vec3 p;
     vec3 normal;
     double u{0.0};
     double v{0.0};
-    material* mat_ptr;
+    material* mat_ptr{nullptr};
+    hit_record()=default;
+    /* ~hit_record(){
+        delete mat_ptr;
+    } */
 };
 
 
