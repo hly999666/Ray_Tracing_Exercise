@@ -69,7 +69,7 @@ hitable* cornell_box(camera& cmr,double nx,double ny){
        material* aluminum=new metal(vec3(0.8,0.85,0.88),0.0);
      hitable* box2=new translate(
                    new rotate_y(
-                   new box(vec3(0,0,0),vec3(165,330,165),aluminum),
+                   new box(vec3(0,0,0),vec3(165,330,165),white),
                    15.0),
                    vec3(265,0,295));
       //list[i++]=new constant_medium(box1,0.01,new constant_texture(vec3(1.0,1.0,1.0)));

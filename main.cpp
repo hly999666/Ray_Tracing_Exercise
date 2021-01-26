@@ -32,7 +32,7 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=256;
+ const int sample_num=512;
   const double aspectRatio=1;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -128,6 +128,9 @@ void render_multi_thread_scanline(int begin_j,int end_j){
           v=1.0-v;
          auto r=_cmr->get_ray(u,v);
            auto color_hit=shade(r,_scene,0);
+   
+           //check NaN by compare to itself
+           chechNaN(color_hit);
             _color+=color_hit;
     }
      write_color(framebuffer,i*ny+j,_color,sample_num);
@@ -209,10 +212,10 @@ _framebuffer=&framebuffer;
 auto light_plane=new xz_rect(213, 343, 227, 332, 554,nullptr);
 auto glass_sphere=new sphere(vec3(190, 90, 190), 90, nullptr);
 hitable* table[2]={light_plane,glass_sphere};
-//Note _light in fact is not ligth ,which should mean anything to be more sampled.
-//_light=new hitable_list(table,2); 
- _light=glass_sphere;
-_scene=scene;
+//Note _light in fact is not light ,which should mean anything to be more sampled.
+_light=new hitable_list(table,2); 
+/*  _light=glass_sphere;*/
+_scene=scene; 
  _cmr=&cmr;
 
 

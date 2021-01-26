@@ -103,7 +103,7 @@ vec3 convertColor(const color& pixel_color, int samples_per_pixel=1,double gamma
     auto g = pixel_color.y();
     auto b = pixel_color.z();
 
-    // Replace NaN components with zero. See explanation in Ray Tracing: The Rest of Your Life.
+    // Replace NaN components with zero.  .
     if (r != r) r = 0.0;
     if (g != g) g = 0.0;
     if (b != b) b = 0.0;
@@ -189,4 +189,10 @@ inline double clamp(double x, double min, double max) {
            axis[1]=unit_vector(cross(w(),a));
            axis[0]=cross(w(),v());
   };
+
+  inline void chechNaN(vec3& v){
+    v.e[0]=(v.e[0]==v.e[0])?v.e[0]:0.0;
+    v.e[1]=(v.e[1]==v.e[1])?v.e[1]:0.0;
+    v.e[2]=(v.e[2]==v.e[2])?v.e[2]:0.0;
+  }
   #endif
