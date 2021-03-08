@@ -1,7 +1,7 @@
 {
     "cmake.cmakePath": "C:/msys64/mingw64/bin/cmake.exe",
     "cmake.configureOnOpen": true,
-    "cmake.generator": "MSYS Makefiles",
+    "cmake.generator": "MinGW Makefiles",
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "files.associations": {
         "array": "cpp",

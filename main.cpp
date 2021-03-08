@@ -32,7 +32,7 @@
  #include "common/libs/stb_image.h"
  #endif
 
- const int sample_num=4096;
+ const int sample_num=512;
   const double aspectRatio=1;
  const int ny=256;
  const int nx=static_cast<int>((double)ny*(double)aspectRatio);
@@ -84,17 +84,20 @@ color shade(const ray& r,hitable* scene,int depth){
    }
 
 
-    auto pdf_direct = new hitable_pdf(_light, rc.p); 
-    mixture_pdf mixed_pdf(pdf_direct, s_rc.pdf_ptr); 
+    hitable_pdf pdf_direct (_light, rc.p); 
+    mixture_pdf mixed_pdf(&pdf_direct, &s_rc.pdf); 
  
-     out_r = ray(rc.p, mixed_pdf.generate(), r.time()); 
+     cosine_pdf diffuse_pdf(rc.normal);
+
+     mixture_pdf final_paf(&mixed_pdf,&diffuse_pdf);
+     out_r = ray(rc.p, final_paf.generate(), r.time()); 
      
-    pdf_val = mixed_pdf.value(out_r.direction());
+    pdf_val = final_paf.value(out_r.direction());
     brdf_factor=rc.mat_ptr->scattering_pdf(r, rc, out_r);
     if(pdf_val-0.0>0.00001){
       reflect_shade= s_rc.attenuation * brdf_factor*shade(out_r, scene,depth+1) / pdf_val;
     }else reflect_shade=vec3(0.0,0.0,0.0);
-      delete pdf_direct;
+ 
    return  emitted+reflect_shade;
   }
  // hit nothing ,get sky color

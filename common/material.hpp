@@ -28,11 +28,9 @@ class scatter_record {
     ray specular_ray; 
     bool is_specular; 
     vec3 attenuation; 
-    pdf* pdf_ptr{nullptr}; 
+    pdf pdf; 
     scatter_record()=default;
-    ~scatter_record(){
-        delete pdf_ptr;
-    }
+    ~scatter_record()=default;
 };
  
 class material{
@@ -103,7 +101,7 @@ class lambertian:public material{
 
             s_rc.is_specular=false;
             s_rc.attenuation=attenuation;
-            s_rc.pdf_ptr=new cosine_pdf(rc.normal);
+            s_rc.pdf=cosine_pdf(rc.normal);
             return true;
     }
 
@@ -138,7 +136,7 @@ class metal:public material{
             s_rc.specular_ray = ray(rc.p, refl); 
             s_rc.attenuation = albedo; 
             s_rc.is_specular = true; 
-            s_rc.pdf_ptr =nullptr; 
+            
         return (dot(out_r.direction(),rc.normal)>0.0);
     }
 
@@ -203,7 +201,6 @@ class dielectric:public material{
             } 
 
          s_rc.is_specular = true; 
-         s_rc.pdf_ptr = nullptr; 
          s_rc.attenuation = color(1.0, 1.0, 1.0);
          s_rc.specular_ray=out_r;
             return true;

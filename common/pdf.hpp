@@ -19,8 +19,8 @@ inline double pdf_uniform_on_sphere(const vec3&p){
 class pdf{
     public:
        virtual ~pdf(){};
-       virtual double value(const vec3& dir)const=0;
-       virtual vec3 generate()const=0;
+       virtual double value(const vec3& dir)const{return 0;};
+       virtual vec3 generate()const{return vec3(0.0,0.0,0.0);};
 };
 class cosine_pdf:public pdf{
   public:

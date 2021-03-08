@@ -34,3 +34,4 @@
 .vs/slnx.sqlite
 *.ppm
 *.png
+/out

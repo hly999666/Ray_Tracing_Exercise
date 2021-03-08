@@ -48,6 +48,7 @@ hitable* cornell_box(camera& cmr,double nx,double ny){
       int i=0;
       material* red=new lambertian(new constant_texture(vec3(0.65,0.05,0.05)));
       material* white=new lambertian(new constant_texture(vec3(0.73,0.73,0.73)));
+      material* blue=new lambertian(new constant_texture(vec3(0.4,0.4,0.95)));
       material* green=new lambertian(new constant_texture(vec3(0.12,0.45,0.15)));
       material* light=new diffuse_light(new constant_texture(vec3(15.0,15.0,15.0)));
 
